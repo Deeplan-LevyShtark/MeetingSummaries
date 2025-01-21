@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "meeting-summaries-client-side-solution",
+    "id": "498c04a9-d86c-40f6-bdb1-7b55f7c20723",
+    "version": "2.0.2.2",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.18.2"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "MeetingSummaries description"
+      },
+      "longDescription": {
+        "default": "MeetingSummaries description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "meeting-summaries Feature",
+        "description": "The feature that activates elements of the meeting-summaries solution.",
+        "id": "5f332fe9-4b60-4263-93a3-c38a373e0a02",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/meeting-summaries.sppkg"
+  }
+}

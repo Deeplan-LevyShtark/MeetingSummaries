@@ -1,0 +1,25 @@
+/*
+
+  This file is used to hide sharepoint's workbench styles and adjust the width of the webpart to be as wide as the page.
+
+*/
+
+// This section adjusts the styling of the CanvasZone and workbenchPageContent divs
+div[data-automation-id="CanvasZone"],
+div[id="workbenchPageContent"] {
+  max-width: none !important;
+  margin: 0;
+
+  > :first-child {
+    > :first-child {
+      > :first-child {
+        padding: 0;
+      }
+    }
+  }
+}
+
+// This section adjusts the z-index of the tooltip div
+div[role="tooltip"] {
+  z-index: 1298 !important;
+}

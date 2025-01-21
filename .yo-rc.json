@@ -1,0 +1,24 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "whichFolder": "subdir",
+    "solutionName": "MeetingSummaries",
+    "componentType": "webpart",
+    "template": "react",
+    "componentName": "MeetingSummaries",
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "18.17.1",
+    "sdksVersions": {
+      "@microsoft/microsoft-graph-client": "3.0.2",
+      "@microsoft/teams-js": "2.12.0"
+    },
+    "version": "1.18.2",
+    "libraryName": "meeting-summaries",
+    "libraryId": "498c04a9-d86c-40f6-bdb1-7b55f7c20723",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionShortDescription": "MeetingSummaries description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false
+  }
+}

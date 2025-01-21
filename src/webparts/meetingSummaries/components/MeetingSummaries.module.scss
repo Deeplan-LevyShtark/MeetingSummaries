@@ -1,0 +1,197 @@
+:root {
+  --errorColor: rgb(211, 47, 47);
+}
+
+.paperContainer {
+  padding: 20px;
+  border-radius: 8px;
+  background-color: -moz-initial;
+  max-width: 1800px;
+  margin: 0px auto;
+}
+
+.ContainerForm {
+  // padding-top: 1em;
+  padding: 20px 0 30px 0;
+  padding: 0em 5em 3em 5em;
+
+  .fieldStyle {
+    min-height: 75px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .fieldStyleAutoComplete {
+    height: auto;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    flex-direction: column;
+    gap: 1em;
+  }
+}
+
+.Section {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 2em
+}
+
+.sectionHeader {
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(90deg, #1150df, #6091fe);
+  -webkit-background-clip: text;
+  font-size: 30px;
+  font-weight: 700;
+  margin: 20px 0;
+}
+
+.ClearIcon {
+  cursor: pointer;
+}
+
+.ClearIcon:hover {
+  border-radius: 0.5em;
+  color: #1150df;
+  opacity: 0.5;
+}
+
+.peoplePickerStyle {
+  width: 35%;
+  padding: 8px;
+
+}
+
+.folderPickerContainer {
+  >:nth-child(1) {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+
+    >:nth-child(2) {
+      >:nth-child(1) {
+        display: none;
+      }
+    }
+  }
+}
+
+.errorMessage {
+  color: rgba(0, 0, 0, 0.6);
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  font-size: 0.75rem;
+  letter-spacing: 0.03333em;
+  text-align: left;
+  color: var(--errorColor);
+  font-size: 12px;
+}
+
+.swal2Title {
+  font-family: Rubik, sans-serif;
+  font-size: 20px;
+}
+
+.swal2Content {
+  font-family: Rubik, sans-serif;
+  font-size: 16px;
+}
+
+.swal2Confirm {
+  font-family: Rubik, sans-serif;
+  font-size: 14px;
+}
+
+.swal2Cancel {
+  font-family: Rubik, sans-serif;
+  font-size: 14px;
+}
+
+.errorMessageClassName {
+  color: var(--errorColor) !important;
+}
+
+.copyContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.copyItem {
+  flex: 1 1 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem; // Slightly increased padding for better spacing
+  border: 1px solid #ccc;
+  border-radius: 8px; // Increased border-radius for a smoother look
+  background-color: #f9f9f9; // Light background color for contrast
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); // Subtle shadow for depth
+  transition: background-color 0.3s, box-shadow 0.3s; // Smooth transition for hover effects
+
+  &:hover {
+    background-color: #f1f1f1; // Slightly darker background on hover
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); // More pronounced shadow on hover
+  }
+}
+
+.copyItem {
+  max-height: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: solid 2px silver;
+  border-radius: 10px;
+  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
+  padding: 1rem;
+  gap: 0.5em;
+  cursor: pointer;
+}
+
+@media only screen and (max-width: 1440px) {
+  .paperContainer {
+    max-width: 1000px;
+  }
+}
+
+@media only screen and (max-width: 1024px) {
+  .paperContainer {
+    max-width: 800px;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .paperContainer {
+    max-width: 500px;
+  }
+
+  .ContainerForm {
+    grid-template-columns: 1fr;
+    padding: 1em 0 0 0;
+  }
+
+  .peoplePickerStyle {
+    width: 100%;
+    padding: 0;
+  }
+}
+
+.fullWidth {
+  width: 100%;
+  border-radius: 0 !important;
+}
+
+.noBorder {
+  border: none !important;
+
+  &:hover {
+    border: none !important;
+  }
+
+  &:focus {
+    border: none !important;
+    outline: none !important;
+  }
+}

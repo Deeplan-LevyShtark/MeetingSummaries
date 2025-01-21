@@ -1,0 +1,357 @@
+.EOFormSectionTitle {
+  display: block;
+  position: relative;
+  width: 100%;
+  text-align: right;
+  padding: 5px 0px;
+
+  margin-top: 5px;
+}
+
+.EOFormSectionTitle .gradText {
+  font-size: 22px;
+  font-weight: 600;
+  background: #020312;
+  background: -webkit-linear-gradient(to left, #4a81e9 100%);
+  background: -moz-linear-gradient(to left, #4a81e9 100%);
+  background: linear-gradient(to left, #4a81e9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.EOFormSectionTitle .gradText1 {
+  font-size: 18px;
+  font-weight: 600;
+  background: #020312;
+  background: -webkit-linear-gradient(to left, #4a81e9 100%);
+  background: -moz-linear-gradient(to left, #4a81e9 100%);
+  background: linear-gradient(to left, #4a81e9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.EOHeader {
+  display: flex;
+  flex-direction: row-reverse;
+  position: relative;
+  width: 100%;
+  padding-top: 10px;
+  margin-bottom: 20px;
+}
+
+.EOHeader .EOHeaderContainer {
+  display: flex;
+  align-items: center;
+  position: relative;
+  float: right;
+  height: 100%;
+  background-image: url('../../Assets/TitleHeader.png');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center;
+}
+
+.EOHeader .EOLogoContainer {
+  position: relative;
+  float: right;
+  width: 30%;
+  height: 96%;
+  background-image: url('../../Assets/logo.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  animation: bounce 2s ease-in both;
+}
+
+.EOHeaderText {
+  font-size: 21px;
+}
+
+.EOHeader .EOHeaderContainer .EOHeaderText {
+  display: flex;
+  justify-content: flex-end;
+  position: relative;
+  width: 97%;
+  padding: 12px 13px 15px 13px;
+  font-size: 32px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  animation: EOMoveInText 2s ease-in both;
+  animation-delay: 1.3s;
+}
+
+@keyframes EOMoveIn {
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 70%;
+  }
+}
+
+@-webkit-keyframes EOMoveIn {
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 70%;
+  }
+}
+
+@keyframes EOMoveInMobile {
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+@-webkit-keyframes EOMoveInMobile {
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes EOMoveInText {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -20%, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@-webkit-keyframes EOMoveInText {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -20%, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+
+
+
+
+
+
+/* Query */
+
+@media only screen and (max-width: 999px) and (min-width: 576px) {
+  .PlanBreakdownRemoveBtn {
+    width: 95%;
+  }
+
+  .PlanBreakdownList div.PlanBreakdownChoosenContentMain {
+    width: 12%;
+  }
+
+  .PlanBreakdownList div.PlanBreakdownChoosenContent {
+    display: block;
+    width: 12%;
+  }
+
+  .PlanBreakdownList div.PlanBreakdownChoosenContent2 {
+    width: 8%;
+  }
+
+  .PlanBreakdownHeaderListItem div.PlanBreakdownHeaderContainer div.PlanBreakdownText {
+    width: 12%;
+  }
+
+  .PlanBreakdownHeaderListItem div.PlanBreakdownHeaderContainer div.MainPlanBreakdownText {
+    display: block;
+    width: 12%;
+  }
+
+  .PlanBreakdownHeaderListItem div.PlanBreakdownHeaderContainer div.PlanBreakdownText2 {
+    width: 8%;
+  }
+
+  .MainForm {
+    padding: 0%;
+  }
+
+  .EOHeader {
+    height: 100px;
+  }
+
+  .EOHeader .EOLogoContainer {
+    display: block;
+  }
+
+  .EOHeader .EOHeaderContainer {
+    width: 70%;
+    animation: EOMoveIn 2s ease-in both;
+  }
+}
+
+@media only screen and (min-width: 1000px) {
+  .PlanBreakdownRemoveBtn {
+    width: 45%;
+  }
+
+  .PlanBreakdownList div.PlanBreakdownChoosenContentMain {
+    width: 12%;
+  }
+
+  .PlanBreakdownList div.PlanBreakdownChoosenContent {
+    display: block;
+    width: 12%;
+  }
+
+  .PlanBreakdownList div.PlanBreakdownChoosenContent2 {
+    width: 8%;
+  }
+
+  .PlanBreakdownHeaderListItem div.PlanBreakdownHeaderContainer div.PlanBreakdownText {
+    width: 12%;
+    display: block;
+  }
+
+  .PlanBreakdownHeaderListItem div.PlanBreakdownHeaderContainer div.MainPlanBreakdownText {
+    width: 12%;
+  }
+
+  .PlanBreakdownHeaderListItem div.PlanBreakdownHeaderContainer div.PlanBreakdownText2 {
+    width: 8%;
+  }
+
+  .MainForm {
+    padding: 0%;
+  }
+
+  .EOHeader {
+    height: 100px;
+  }
+
+  .EOHeader .EOLogoContainer {
+    display: block;
+  }
+
+  .EOHeader .EOHeaderContainer {
+    width: 70%;
+    animation: EOMoveIn 2s ease-in both;
+  }
+}
+
+@media only screen and (min-width: 364px) and (max-width: 575px) {
+  .PlanBreakdownRemoveBtn {
+    width: 45%;
+  }
+
+  .PlanBreakdownList div.PlanBreakdownChoosenContentMain {
+    width: 69%;
+  }
+
+  .PlanBreakdownList div.PlanBreakdownChoosenContent {
+    display: none;
+    width: 0%;
+  }
+
+  .PlanBreakdownList div.PlanBreakdownChoosenContent2 {
+    width: 29%;
+  }
+
+  .PlanBreakdownHeaderListItem div.PlanBreakdownHeaderContainer div.PlanBreakdownText {
+    display: none;
+    width: 0%;
+  }
+
+  .PlanBreakdownHeaderListItem div.PlanBreakdownHeaderContainer div.MainPlanBreakdownText {
+    width: 69%;
+  }
+
+  .PlanBreakdownHeaderListItem div.PlanBreakdownHeaderContainer div.PlanBreakdownText2 {
+    width: 29%;
+  }
+
+  .MainForm {
+    padding: 4%;
+  }
+
+  .EOHeader {
+    height: 100px;
+  }
+
+  .EOHeader .EOLogoContainer {
+    display: none;
+  }
+
+  .EOHeader .EOHeaderContainer {
+    width: 100%;
+    animation: EOMoveInMobile 1.6s ease-in both;
+  }
+}
+
+
+@media only screen and (max-width: 363px) {
+
+  .PlanBreakdownRemoveBtn {
+    width: 45%;
+  }
+
+  .PlanBreakdownList div.PlanBreakdownChoosenContentMain {
+    width: 69%;
+  }
+
+  .PlanBreakdownList div.PlanBreakdownChoosenContent {
+    display: none;
+    width: 0%;
+  }
+
+  .PlanBreakdownList div.PlanBreakdownChoosenContent2 {
+    width: 29%;
+  }
+
+  .PlanBreakdownHeaderListItem div.PlanBreakdownHeaderContainer div.PlanBreakdownText {
+    display: none;
+    width: 0%;
+  }
+
+  .PlanBreakdownHeaderListItem div.PlanBreakdownHeaderContainer div.MainPlanBreakdownText {
+    width: 69%;
+  }
+
+  .PlanBreakdownHeaderListItem div.PlanBreakdownHeaderContainer div.MainPlanBreakdownText3 {
+    display: none;
+    width: 75%;
+  }
+
+  .PlanBreakdownHeaderListItem div.PlanBreakdownHeaderContainer div.PlanBreakdownText2 {
+    width: 29%;
+  }
+
+  .MainForm {
+    padding: 4%;
+  }
+
+  .EOHeader {
+    height: 150px;
+  }
+
+  .EOHeader .EOLogoContainer {
+    display: none;
+  }
+
+  .EOHeader .EOHeaderContainer {
+    width: 100%;
+    animation: EOMoveInMobile 1.6s ease-in both;
+  }
+}

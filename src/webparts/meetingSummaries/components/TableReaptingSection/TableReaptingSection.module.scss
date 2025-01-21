@@ -1,0 +1,139 @@
+.tableRepeatingSection {
+    border-radius: 8px;
+    margin: 0 auto;
+}
+
+.tableWrapper {
+    overflow-x: auto; // Horizontal scroll if content overflows
+    max-width: 100%; // Ensures table fits within the container
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.largeTable {
+    width: fit-content;
+    border-collapse: collapse;
+    margin-top: 16px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.meetingContentTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+    display: flex;
+    background-color: #4a81e9;
+    color: white;
+    font-weight: bold;
+
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+
+}
+
+
+.headerCell {
+    padding: 0.5em;
+
+    text-align: left;
+    border-right: 1px solid #005f99;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    /* Dynamic flex width */
+    flex: 1;
+}
+
+.cell {
+    flex: 1;
+    /* Matches the width of the header cells */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid #eee;
+
+    padding: 0 0.5em 0 0.5em;
+
+    &:hover {
+        background-color: #f3f3f3;
+    }
+
+}
+
+.cell:last-child {
+    border-right: none;
+    /* No border on the last cell */
+}
+
+.fullWidth {
+    width: 100%;
+    border-radius: 0 !important;
+}
+
+.row {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    height: auto;
+    overflow: hidden;
+}
+
+
+.headerCell:last-child {
+    border-right: none;
+    /* No border on the last cell */
+}
+
+.addButton {
+    background-color: #007acc;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin-left: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.removeButton {
+    background-color: #ff5f5f;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    margin-left: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.removeButton:hover,
+.addButton:hover {
+    opacity: 0.9;
+}
+
+.row {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+}
+
+@media only screen and (max-width: 1440px) {
+    .meetingContentTable {
+        width: fit-content;
+    }
+}
+
+@media only screen and (max-width: 1170px) {
+    .table {
+        width: fit-content;
+    }
+}

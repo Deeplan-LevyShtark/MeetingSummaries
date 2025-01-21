@@ -1,0 +1,41 @@
+.cell {
+    flex: 1;
+    /* Matches the width of the header cells */
+    text-align: left;
+    border-right: 1px solid #eee;
+    width: 100%;
+
+    &:hover {
+        background-color: #f3f3f3;
+    }
+
+}
+
+.cell:last-child {
+    border-right: none;
+    /* No border on the last cell */
+}
+
+.input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+
+}
+
+.input:hover {
+    border: 1px solid #ddd;
+    /* Keep the same style as the default */
+    background-color: inherit;
+    /* In case there's a background hover effect */
+    outline: none;
+    /* Ensures no outline is added on hover */
+}
+
+.input:focus {
+    border: 1px solid #ddd;
+    /* Or apply a specific focus style if needed */
+    outline: none;
+    /* Optional: Remove default focus outline */
+}

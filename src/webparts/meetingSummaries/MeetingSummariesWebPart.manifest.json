@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "a39b3ffb-72ce-40b3-8b67-bf10ecc320f1",
+  "alias": "MeetingSummariesWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": [
+    "SharePointWebPart",
+    "TeamsPersonalApp",
+    "TeamsTab",
+    "SharePointFullPage"
+  ],
+  "supportsThemeVariants": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": {
+        "default": "Advanced"
+      },
+      "title": {
+        "default": "MeetingSummaries"
+      },
+      "description": {
+        "default": "MeetingSummaries description"
+      },
+      "officeFabricIconFontName": "TaskSolid",
+      "properties": {
+        "Title": "Meeting Summaries",
+        "MeetingSummariesListId": "3f350b0a-1916-4927-95b8-e05b245e7c74",
+        "CompaniesList": "f9266583-0e08-49df-bb2e-28368c429893",
+        "ExternalUsersOptions": "89e12cc5-74ce-43b0-9d53-79b783b150c1",
+        "TasksListId": "313cc59d-4e6c-4d8d-9024-517ebf56dc4f"
+      }
+    }
+  ],
+  "supportsFullBleed": true
+}

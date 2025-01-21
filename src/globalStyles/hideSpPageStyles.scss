@@ -1,0 +1,32 @@
+/*
+    If we want to hide the SharePoint layout styles on a page, we can use the following CSS code.
+    This code will hide the SharePoint header, left navigation, command bar, page header, and comments section.
+    
+    If we want to make the webpart as wide as the page, we need to set the main container width to 100% and height to calc(100vh - 48px).
+    48px is the height of the SharePoint main header (the blue one with the 9 dots)
+*/
+
+// div[id="spSiteHeader"],
+div[id="spLeftNav"],
+// div[id="spCommandBar"],
+div[data-automation-id="pageHeader"],
+div[id="CommentsWrapper"] {
+    display: none !important;
+}
+
+div[data-automation-id="CanvasZone"],
+div[data-automation-id="CanvasSection"] {
+    padding: 0 !important;
+    // background-image: url('./../webparts/meetingSummaries/assets/MainBackground.png');
+    // background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-position: center;
+}
+
+div[data-automation-id="CanvasControl"] {
+    margin: 0 !important;
+}
+
+div[data-automation-id="CanvasZone-SectionContainer"] {
+    max-width: unset !important;
+}
