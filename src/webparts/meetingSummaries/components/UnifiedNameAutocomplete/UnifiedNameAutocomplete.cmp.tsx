@@ -22,6 +22,7 @@ interface UnifiedNameAutocompleteProps {
     params?: { id: number };
     multiple?: boolean;
     freeSolo?: boolean;
+    size?: "small" | "medium";
     onChange: (
         idOrValue: number | string | (number | string)[],
         newValue: string | string[],
@@ -41,6 +42,7 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
     params,
     multiple = false,
     freeSolo = false,
+    size = "medium",
     onChange,
 }) => {
     const [localInputValue, setLocalInputValue] = React.useState<string | string[]>(value || "");
@@ -134,6 +136,7 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
 
     return (
         <Autocomplete
+            size={size}
             sx={sx}
             options={users}
             disableClearable

@@ -21,6 +21,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { addRow, deleteRow, sweetAlertMsgHandler, reformatList, reformatListWithDates, saveEntities, confirmSaveAndSend } from './Utils';
 import { CacheProviderWrapper } from './CacheProviderWrapper';
 import PeoplePickerMUI from './PeoplePickerMUI/PeoplePickerMUI.cmp';
+import PopUp from './PopUp/PopUp.cmp';
+import { Labeling } from './Labeling/Labeling';
+import SourceIcon from '@mui/icons-material/Source';
 
 export interface IMeetingSummariesProps {
   userDisplayName: string;
@@ -55,6 +58,8 @@ export interface IMeetingSummariesStates {
   selectedUsers: any[];
   selectedUsersFreeSolo: any[];
   freeSoloUser: string;
+  folderPopUp: boolean;
+  selectedLabeling: any;
 }
 
 const theme = createTheme({
@@ -96,6 +101,8 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
       selectedUsers: [],
       selectedUsersFreeSolo: [],
       freeSoloUser: '',
+      folderPopUp: false,
+      selectedLabeling: {}
     }
 
     this.onChangeGeneric = this.onChangeGeneric.bind(this);
@@ -164,6 +171,16 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
     this.setState({ libraryPath: libraryPath, libraryName: folder.Name }, () => {
       this.handleErrorRequire(libraryPath, 'libraryPath')
     })
+  }
+
+  libraryPathHandle = (selectedLabeling: any): void => {
+    this.setState({ libraryPath: selectedLabeling?.libraryPath, libraryName: selectedLabeling?.libraryName, selectedLabeling: selectedLabeling }, () => {
+      this.handleErrorRequire(selectedLabeling?.libraryPath, 'libraryPath')
+    })
+  }
+
+  closeFolderPopUp = (): void => {
+    this.setState({ folderPopUp: false })
   }
 
   // Validation for the entire form
@@ -292,7 +309,8 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
           selectedUsersFreeSolo: JSON.stringify(selectedUsersFreeSolo),
           submit: submitType,
           Summarizing: currUser?.Title,
-          Copy: [...this.state.selectedUsers, ...this.state.selectedUsersFreeSolo].flat().join(', ')
+          Copy: [...this.state.selectedUsers, ...this.state.selectedUsersFreeSolo].flat().join(', '),
+          selectedLabeling: JSON.stringify(this.state.selectedLabeling)
         }).then(async (item) => {
           itemId = item.Id
           await this.props.sp.web.lists.getById(this.props.MeetingSummariesListId).items.getById(item.Id).update({
@@ -667,20 +685,21 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
 
                   <Divider style={{ paddingTop: '1em' }} />
 
-                  <div className={styles.folderPickerContainer} style={{ width: '100%', paddingTop: '2em' }}>
+                  <div style={{ width: '100%', paddingTop: '2em' }}>
 
-                    <FolderPicker
-                      context={this.props.context as any}  // Ensure proper context is passed                        
-                      label={t["Choose where to file the meeting summary"]}
-                      rootFolder={{
-                        Name: 'Documents',
-                        // ServerRelativeUrl: `${this.state?.currUser?.Email.includes('lsz') ? "/sites/METPRODdoc/SharedLSZ" : "/sites/METPRODdoc"}`
-                        ServerRelativeUrl: "/sites/METPRODocCenterC"
-                      }}
-                      onSelect={(folder) => { this.folderHandle(folder) }}
+                    <div style={{ display: 'flex', gap: '1em', alignItems: 'center' }}>
+                      <span>{t["Choose where to file the meeting summary"]}</span>
+                      <IconButton
+                        size='small'
+                        sx={{ display: 'flex', justifyContent: 'center' }} onClick={(e: any) => { this.setState({ folderPopUp: true }) }}>
+                        <SourceIcon fontSize='small' />
+                      </IconButton>
+                    </div>
 
-                      canCreateFolders={false}
-                    />
+                    <PopUp open={this.state.folderPopUp} onClose={() => { this.closeFolderPopUp() }} title={t["Choose where to file the meeting summary"]} actions={null} dir={currDir ? 'rtl' : 'ltr'}>
+                      <Labeling sp={this.props.sp} context={this.props.context} dir={currDir} users={users} onSave={this.libraryPathHandle} onClose={this.closeFolderPopUp}></Labeling>
+                    </PopUp>
+
                     <div style={{ display: 'flex', gap: '1em', alignItems: 'center' }}>
                       <span>{t["File location"]}: </span>
                       {libraryName !== '' ?
