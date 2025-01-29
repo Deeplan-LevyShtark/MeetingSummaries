@@ -375,7 +375,6 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                             Description: MeetingSummary,
                             Url: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/MeetingSummaries.aspx?FormID=${this.props.FormID}`
                         }
-
                     })
 
                 } catch (error) {
