@@ -697,7 +697,7 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
                     </div>
 
                     <PopUp open={this.state.folderPopUp} onClose={() => { this.closeFolderPopUp() }} title={t["Choose where to file the meeting summary"]} actions={null} dir={currDir ? 'rtl' : 'ltr'}>
-                      <Labeling sp={this.props.sp} context={this.props.context} dir={currDir} users={users} onSave={this.libraryPathHandle} onClose={this.closeFolderPopUp}></Labeling>
+                      <Labeling selectedLabeling={this.state.selectedLabeling} sp={this.props.sp} context={this.props.context} dir={currDir} users={users} onSave={this.libraryPathHandle} onClose={this.closeFolderPopUp}></Labeling>
                     </PopUp>
 
                     <div style={{ display: 'flex', gap: '1em', alignItems: 'center' }}>

@@ -26,6 +26,7 @@ export interface LabelingProps {
     context: WebPartContext;
     dir: boolean;
     users: any[];
+    selectedLabeling?: any;
     onSave: (selectedLabeling: string) => void;
     onClose: () => void;
 }
@@ -50,23 +51,35 @@ const mapWP: { [key: string]: string } = {
 
 export function Labeling(props: LabelingProps) {
     // State management for labeling data    
-    const [Design_WP, setDesign_WP] = useState<any[]>([]);
-    const [Design_DesignStage, setDesign_DesignStage] = useState<any[]>([]);
-    const [Elements, setElements] = useState<any[]>([]);
-    const [DesignDisciplinesSubDisciplines, setDesignDisciplinesSubDisciplines] = useState<any[]>([]);
-    const [Design_DocumentStatus, setDesign_DocumentStatus] = useState<any[]>([]);
-    const [Design_TYPE, setDesign_TYPE] = useState<any[]>([]);
+    const [designData, setDesignData] = useState({
+        Design_WP: [] as any[],
+        Design_DesignStage: [] as any[],
+        Elements: [] as any[],
+        DesignDisciplinesSubDisciplines: [] as any[],
+        Design_DocumentStatus: [] as any[],
+    });
 
-    const [selectedObject, setSelectedObject] = useState<any>({});
+    const [selectedObject, setSelectedObject] = useState<any>(props.selectedLabeling || {});
 
     // Fetch labeling data on mount
     useEffect(() => {
         getLabelingData();
     }, []);
 
-    // useEffect(() => {
-    //     console.log('Selected Object:', selectedObject);
-    // }, [selectedObject]);
+    useEffect(() => {
+        if (props.selectedLabeling !== undefined) {
+            setSelectedObject((prev: any) => ({
+                ...prev,
+                WP: props.selectedLabeling?.WP ?? null,
+                "Sub Disciplines": props.selectedLabeling?.["Sub Disciplines"] ?? null,
+                Elements: props.selectedLabeling?.Elements ?? null,
+                "Design Stage": props.selectedLabeling?.["Design Stage"] ?? null,
+                "Document Status": props.selectedLabeling?.["Document Status"] ?? null,
+            }));
+        }
+    }, [props.selectedLabeling]);
+
+
 
     const getLabelingData = async () => {
 
@@ -81,33 +94,45 @@ export function Labeling(props: LabelingProps) {
             ]);
 
             // Update state with fetched data
-            setDesign_WP(wp);
-            setDesign_DesignStage(designStage);
-            setElements(elements);
-            setDesignDisciplinesSubDisciplines(disciplines);
-            setDesign_DocumentStatus(designDocumentStatus);
-            setDesign_TYPE(designType);
+            setDesignData({
+                Design_WP: wp,
+                Design_DesignStage: designStage,
+                Elements: elements,
+                DesignDisciplinesSubDisciplines: disciplines,
+                Design_DocumentStatus: designDocumentStatus,
+            });
 
         } catch (error) {
             console.error('Error fetching labeling data:', error);
         }
     };
 
-    // Generic Autocomplete component
-    function AutoCompleteLabeling(options: any[], label: string, valueField: string, required?: boolean) {
+    function AutoCompleteLabeling(
+        options: any[],
+        label: string, // Ensure it matches selectedObject keys
+        valueField: any,
+        required?: boolean
+    ) {
         return (
             <Autocomplete
                 fullWidth
-                size='small'
+                size="small"
                 options={options}
-                getOptionLabel={(option) => option[valueField] || ''}
-                onChange={(event, newValue) => setSelectedObject({ ...selectedObject, [label]: newValue })}
+                getOptionLabel={(option) => option[valueField] || ""}
+                value={selectedObject[label] || null} // Controlled value
+                onChange={(event, newValue) =>
+                    setSelectedObject((prev: any) => ({
+                        ...prev,
+                        [label]: newValue || undefined, // Ensure it updates correctly
+                    }))
+                }
                 renderInput={(params) => (
-                    <TextField {...params} label={label} variant="outlined" />
+                    <TextField {...params} label={label} variant="outlined" required={required} />
                 )}
             />
         );
     }
+
 
     function urlBuilder() {
         // Raw path segments (do not encode here)
@@ -209,26 +234,38 @@ export function Labeling(props: LabelingProps) {
         setSelectedObject({ ...selectedObject, [name]: event.target.value });
     }
 
-    const filteredElements = Elements.filter((element) => element.WP === selectedObject.WP?.Title);
-    // const filteredDesignStage = Design_DesignStage.filter((designStage) => designStage.Design_Stage === selectedObject['Design Stage']?.Title);
-
     return (
         <>
             <div className={styles.labelingContainer}>
-                {AutoCompleteLabeling(Design_WP, 'WP', 'Title', true)}
-                {AutoCompleteLabeling(Design_DesignStage, 'Design Stage', 'Title', true)}
-                {AutoCompleteLabeling(selectedObject.WP ? filteredElements : Elements, 'Elements', 'ElementNameAndCode', true)}
-                {AutoCompleteLabeling(DesignDisciplinesSubDisciplines, 'Sub Disciplines', 'SubDiscipline', true)}
-                <TextField type='number' label='Rev' size='small' fullWidth onChange={(event) => handleRevChange(event, 'Rev')}></TextField>
-                {AutoCompleteLabeling(Design_DocumentStatus, 'Document Status', 'Title')}
-                {/* <TextField type='number' label='Revision' size='small' fullWidth onChange={(event) => handleRevChange(event, 'Revision')}></TextField> */}
-                <UnifiedNameAutocomplete size='small' context={props.context} users={props.users} multiple={false} label='Author/Designer Name'
-                    onChange={(newValue: any) => setSelectedObject({ ...selectedObject, AuthorDesingerName: newValue })} />
-                {/* {AutoCompleteLabeling(Design_TYPE, 'Design Type', 'Title')} */}
+                {AutoCompleteLabeling(designData.Design_WP, 'WP', 'Title', true)}
+                {AutoCompleteLabeling(designData.Design_DesignStage, 'Design Stage', 'Title', true)}
+                {AutoCompleteLabeling(selectedObject.WP ? designData.Elements.filter((element) => element.WP === selectedObject.WP?.Title) : designData.Elements,
+                    'Elements', 'ElementNameAndCode', true)}
+                {AutoCompleteLabeling(designData.DesignDisciplinesSubDisciplines, 'Sub Disciplines', 'SubDiscipline', true)}
+                <TextField value={selectedObject.Rev !== null && selectedObject.Rev !== undefined ? selectedObject.Rev : 0} type='number' label='Rev' size='small' fullWidth onChange={(event) => handleRevChange(event, 'Rev')}></TextField>
+                {AutoCompleteLabeling(designData.Design_DocumentStatus, 'Document Status', 'Title')}
+                <UnifiedNameAutocomplete
+                    value={
+                        props.users.filter((user) => user.Id === selectedObject.AuthorDesingerName)[0]?.Title ?? ''
+                    }
+                    size="small"
+                    context={props.context}
+                    users={props.users.filter((u: any) => u?.Email)}
+                    multiple={false}
+                    label="Author/Designer Name"
+                    onChange={(idOrValue, newValue, email) => {
+                        const selectedUser = props.users.find((user) => user.Title === newValue);
+                        setSelectedObject((prev: any) => ({
+                            ...prev,
+                            AuthorDesingerName: selectedUser ? selectedUser.Id : null, // Store the ID instead of the name
+                        }));
+                    }}
+                />
+
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
                 <Button
-                    disabled={!selectedObject.WP || !selectedObject['Design Stage'] || !selectedObject.Elements || !selectedObject['Sub Disciplines']}
+                    // disabled={!selectedObject.WP || !selectedObject['Design Stage'] || !selectedObject.Elements || !selectedObject['Sub Disciplines']}
                     style={{ textTransform: 'capitalize' }}
                     size='small'
                     variant='contained'
