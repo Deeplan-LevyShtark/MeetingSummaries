@@ -6,6 +6,21 @@ import { v4 as uuidv4 } from 'uuid';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { UnifiedNameAutocomplete } from '../UnifiedNameAutocomplete/UnifiedNameAutocomplete.cmp';
 
+interface LookupField {
+    Id?: number | null;
+}
+
+interface InputData {
+    documentLibraryNameMapped: string;
+    Rev?: number | null;
+    WP?: LookupField;
+    "Sub Disciplines"?: LookupField;
+    Elements?: LookupField;
+    "Design Stage"?: LookupField;
+    "Document Status"?: LookupField;
+    AuthorDesingerName?: string | null;
+}
+
 export interface LabelingProps {
     sp: SPFI;
     context: WebPartContext;
@@ -49,12 +64,11 @@ export function Labeling(props: LabelingProps) {
         getLabelingData();
     }, []);
 
-    useEffect(() => {
-        console.log('Selected Object:', selectedObject);
-    }, [selectedObject]);
+    // useEffect(() => {
+    //     console.log('Selected Object:', selectedObject);
+    // }, [selectedObject]);
 
     const getLabelingData = async () => {
-        console.log(props.context.pageContext.web.absoluteUrl);
 
         try {
             const [wp, designStage, elements, disciplines, designDocumentStatus, designType] = await Promise.all([
@@ -116,9 +130,61 @@ export function Labeling(props: LabelingProps) {
         return url;
     }
 
+    function buildJsonPayload(data: InputData) {
+        let jsonToSave: Record<string, any> = {
+            "__metadata": {
+                "type": `SP.Data.${data.documentLibraryNameMapped}Item`
+            }
+        };
+
+        // Helper function to add fields only if they are not null, undefined, or empty
+        const addField = (key: string, value: any) => {
+            if (value !== null && value !== undefined && value !== "") {
+                jsonToSave[key] = value;
+            }
+        };
+
+        // Ensure Rev is set, default to 0 if null
+        addField("Rev", data.Rev !== null && data.Rev !== undefined ? Number(data.Rev) : 0);
+
+        // Lookup fields (ensure Collection(Edm.Int32) format)
+        const addLookupField = (key: string, lookupObject?: LookupField) => {
+            if (lookupObject?.Id !== undefined && lookupObject?.Id !== null) {
+                jsonToSave[key] = {
+                    "__metadata": { "type": "Collection(Edm.Int32)" },
+                    "results": [lookupObject.Id]
+                };
+            }
+        };
+
+        addLookupField("OData__WPId", data.WP);
+        addLookupField("subDisciplineId", data["Sub Disciplines"]);
+        addLookupField("ElementNameAndCodeId", data.Elements);
+        addLookupField("OData__designStageId", data["Design Stage"]);
+        addLookupField("OData__DocumentStatusId", data["Document Status"]);
+
+        // String field (only add if not empty)
+        addField("DesignerNameId", data.AuthorDesingerName);
+
+        return jsonToSave;
+    }
+
     function saveToSP() {
         // Save data to SP here
         const libraryPath = urlBuilder();
+
+        const inputDate: InputData = {
+            documentLibraryNameMapped: mapWP[selectedObject.WP?.Title],
+            Rev: selectedObject.Rev,
+            WP: selectedObject.WP,
+            "Sub Disciplines": selectedObject["Sub Disciplines"],
+            Elements: selectedObject?.Elements,
+            "Design Stage": selectedObject['Design Stage'],
+            "Document Status": selectedObject['Document Status'],
+            AuthorDesingerName: selectedObject?.AuthorDesingerName
+        };
+
+        const jsonPayload = buildJsonPayload(inputDate);
 
         const selectedLabeling = {
             ...selectedObject,
@@ -126,7 +192,8 @@ export function Labeling(props: LabelingProps) {
             libraryPath: `${mapWP[selectedObject?.WP.Title]}/${selectedObject['Design Stage']?.Title}/${selectedObject.Elements?.ElementNameAndCode}/${selectedObject['Sub Disciplines']?.SubDiscipline}`,
             libraryName: `${selectedObject?.WP.Title}/${selectedObject['Design Stage']?.Title}/${selectedObject.Elements?.ElementNameAndCode}/${selectedObject['Sub Disciplines']?.SubDiscipline}`,
             documentLibraryName: selectedObject?.WP.Title,
-            documentLibraryNameMapped: mapWP[selectedObject?.WP.Title]
+            documentLibraryNameMapped: mapWP[selectedObject?.WP.Title],
+            jsonPayload: jsonPayload,
         }
         props.onSave(selectedLabeling);
         props.onClose();
@@ -154,7 +221,7 @@ export function Labeling(props: LabelingProps) {
                 {AutoCompleteLabeling(DesignDisciplinesSubDisciplines, 'Sub Disciplines', 'SubDiscipline', true)}
                 <TextField type='number' label='Rev' size='small' fullWidth onChange={(event) => handleRevChange(event, 'Rev')}></TextField>
                 {AutoCompleteLabeling(Design_DocumentStatus, 'Document Status', 'Title')}
-                <TextField type='number' label='Revision' size='small' fullWidth onChange={(event) => handleRevChange(event, 'Revision')}></TextField>
+                {/* <TextField type='number' label='Revision' size='small' fullWidth onChange={(event) => handleRevChange(event, 'Revision')}></TextField> */}
                 <UnifiedNameAutocomplete size='small' context={props.context} users={props.users} multiple={false} label='Author/Designer Name'
                     onChange={(newValue: any) => setSelectedObject({ ...selectedObject, AuthorDesingerName: newValue })} />
                 {/* {AutoCompleteLabeling(Design_TYPE, 'Design Type', 'Title')} */}
