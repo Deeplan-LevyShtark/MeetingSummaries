@@ -24,6 +24,8 @@ import PeoplePickerMUI from './PeoplePickerMUI/PeoplePickerMUI.cmp';
 import PopUp from './PopUp/PopUp.cmp';
 import { Labeling } from './Labeling/Labeling';
 import SourceIcon from '@mui/icons-material/Source';
+import { NewContact } from './NewContact/NewContact';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
 export interface IMeetingSummariesEditProps {
     userDisplayName: string;
@@ -62,6 +64,7 @@ export interface IMeetingSummariesEditStates {
     freeSoloUser: string;
     submit: string;
     selectedLabeling: any;
+    addNewContactPopUp: boolean;
 }
 
 export const createDirTheme = (isRtl: boolean) =>
@@ -114,7 +117,8 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
             selectedUsersFreeSolo: [],
             freeSoloUser: '',
             submit: '',
-            selectedLabeling: {}
+            selectedLabeling: {},
+            addNewContactPopUp: false
         }
 
         this.onChangeGeneric = this.onChangeGeneric.bind(this);
@@ -208,6 +212,11 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
 
     closeFolderPopUp = (): void => {
         this.setState({ folderPopUp: false })
+    }
+
+    closeAddNewContactPopUp = async (): Promise<void> => {
+        const externalUsers = await this.props.sp.web.lists.getById(this.props.ExternalUsersOptions).items()
+        this.setState({ addNewContactPopUp: false, users: [...this.state.users, ...externalUsers] })
     }
 
     // Validation for the entire form
@@ -613,6 +622,19 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                             <div className={styles.ContainerForm}>
 
                                 {LoadingForm === 'Loading' ? <Loader /> : <section>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '1em' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'start', gap: '1em', paddingTop: '1em', paddingBottom: '1em' }}>
+                                            <Button
+                                                variant="contained"
+                                                size="medium"
+                                                startIcon={<PersonAddIcon />} // Icon on the left side
+                                                onClick={() => this.setState({ addNewContactPopUp: true })}
+                                                sx={{ display: "flex", gap: "0.5em", textTransform: "capitalize" }}
+                                            >
+                                                {this.state.currDir ? "איש קשר חדש" : "Add New Contact"}
+                                            </Button>
+                                        </div>
+                                    </div>
 
                                     <section className={styles.Section}>
                                         <div className={styles.fieldStyle}>
@@ -648,6 +670,10 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                                         />
 
                                     </section>
+
+                                    <PopUp open={this.state.addNewContactPopUp} title={this.state.currDir ? "איש קשר חדש" : 'Add New Contact'} onClose={() => this.closeAddNewContactPopUp()} actions={null} dir={currDir ? 'rtl' : 'ltr'}>
+                                        <NewContact onClose={this.closeAddNewContactPopUp} dir={currDir} sp={this.props.sp} context={this.props.context} />
+                                    </PopUp>
 
                                     <ThemeProvider theme={theme}>
                                         <TableRepeatingSection

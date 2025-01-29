@@ -61,6 +61,9 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
 
 
     const handleBlur = () => {
+
+        console.log("handleBlur - localInputValue:", localInputValue)
+
         if (Array.isArray(localInputValue)) {
             const ids = localInputValue.map((title) => {
                 const user = users.find((u) => u.Title === title);
@@ -72,17 +75,17 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
                 return user ? user.Email : "";
             }).filter(email => email !== ""); // Filter out empty strings      
             onChange(params?.id ?? localInputValue, localInputValue, filterdEmails, true, ids, 'onBlur');
-        } else if (localInputValue.trim() !== "") {
-            const updatedValue = [...(internalValue as string[]), localInputValue];
-            setInternalValue(updatedValue);
-            const filterdEmails = users.filter((u) => (updatedValue as string[]).includes(u.Title)).map((u) => u.Email);
-            onChange(params?.id ?? updatedValue, updatedValue, filterdEmails, true);
         }
+        // else if (localInputValue.trim() !== "") {
+        //     const updatedValue = [...(internalValue as string[]), localInputValue];
+        //     setInternalValue(updatedValue);
+        //     const filterdEmails = users.filter((u) => (updatedValue as string[]).includes(u.Title)).map((u) => u.Email);
+        //     onChange(params?.id ?? updatedValue, updatedValue, filterdEmails, true);
+        // }
     };
 
     const handleInputChange = (event: any, newInputValue: string) => {
         setLocalInputValue(newInputValue);
-
     };
 
     const handleOptionChange = (

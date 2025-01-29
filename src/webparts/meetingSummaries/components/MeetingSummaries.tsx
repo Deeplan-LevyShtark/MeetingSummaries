@@ -24,6 +24,8 @@ import PeoplePickerMUI from './PeoplePickerMUI/PeoplePickerMUI.cmp';
 import PopUp from './PopUp/PopUp.cmp';
 import { Labeling } from './Labeling/Labeling';
 import SourceIcon from '@mui/icons-material/Source';
+import { NewContact } from './NewContact/NewContact';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
 export interface IMeetingSummariesProps {
   userDisplayName: string;
@@ -60,6 +62,7 @@ export interface IMeetingSummariesStates {
   freeSoloUser: string;
   folderPopUp: boolean;
   selectedLabeling: any;
+  addNewContactPopUp: boolean;
 }
 
 const theme = createTheme({
@@ -102,7 +105,8 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
       selectedUsersFreeSolo: [],
       freeSoloUser: '',
       folderPopUp: false,
-      selectedLabeling: {}
+      selectedLabeling: {},
+      addNewContactPopUp: false
     }
 
     this.onChangeGeneric = this.onChangeGeneric.bind(this);
@@ -181,6 +185,11 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
 
   closeFolderPopUp = (): void => {
     this.setState({ folderPopUp: false })
+  }
+
+  closeAddNewContactPopUp = async (): Promise<void> => {
+    const externalUsers = await this.props.sp.web.lists.getById(this.props.ExternalUsersOptions).items()
+    this.setState({ addNewContactPopUp: false, users: [...this.state.users, ...externalUsers] })
   }
 
   // Validation for the entire form
@@ -563,10 +572,26 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
               <div className={styles.ContainerForm}>
 
                 {LoadingForm === 'Loading' ? <Loader /> : <section>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'end', paddingBottom: '1em', direction: 'ltr' }}>
-                    <Typography>עברית</Typography>
-                    <Switch onClick={() => this.setState({ currDir: !currDir })} defaultChecked inputProps={{ 'aria-label': 'ant design' }} />
-                    <Typography>English</Typography>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '1em' }}>
+
+                    <div style={{ display: 'flex', justifyContent: 'start', gap: '1em', paddingTop: '1em', paddingBottom: '1em' }}>
+                      <Button
+                        variant="contained"
+                        size="medium"
+                        startIcon={<PersonAddIcon />} // Icon on the left side
+                        onClick={() => this.setState({ addNewContactPopUp: true })}
+                        sx={{ display: "flex", gap: "0.5em", textTransform: "capitalize" }}
+                      >
+                        {this.state.currDir ? "איש קשר חדש" : "Add New Contact"}
+                      </Button>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Typography>עברית</Typography>
+                      <Switch onClick={() => this.setState({ currDir: !currDir })} defaultChecked inputProps={{ 'aria-label': 'ant design' }} />
+                      <Typography>English</Typography>
+                    </div>
+
                   </div>
 
                   <section className={styles.Section}>
@@ -603,6 +628,31 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
                     />
 
                   </section>
+
+                  {/* <div style={{ display: 'flex', justifyContent: 'start', gap: '1em' }}>
+                    <IconButton sx={{ gap: '0.5em' }} size='medium' onClick={() => this.setState({ addNewContactPopUp: true })}>
+                      <PersonAddIcon fontSize='medium' />
+                      <span>{this.state.currDir ? "איש קשר חדש" : "Add new contact"}</span>
+                    </IconButton>
+                  </div> */}
+
+                  {/* <div style={{ display: 'flex', justifyContent: 'start', gap: '1em', paddingTop: '1em', paddingBottom: '1em' }}>
+
+                    <Button
+                      variant="contained"
+                      size="medium"
+                      startIcon={<PersonAddIcon />} // Icon on the left side
+                      onClick={() => this.setState({ addNewContactPopUp: true })}
+                      sx={{ display: "flex", gap: "0.5em", textTransform: "capitalize" }}
+                    >
+                      {this.state.currDir ? "איש קשר חדש" : "Add New Contact"}
+                    </Button>
+                  </div> */}
+
+
+                  <PopUp open={this.state.addNewContactPopUp} title={this.state.currDir ? "איש קשר חדש" : 'Add New Contact'} onClose={() => this.closeAddNewContactPopUp()} actions={null} dir={currDir ? 'rtl' : 'ltr'}>
+                    <NewContact onClose={this.closeAddNewContactPopUp} dir={currDir} sp={this.props.sp} context={this.props.context} />
+                  </PopUp>
 
                   <ThemeProvider theme={theme}>
                     <TableRepeatingSection

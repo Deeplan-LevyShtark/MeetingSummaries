@@ -79,8 +79,6 @@ export function Labeling(props: LabelingProps) {
         }
     }, [props.selectedLabeling]);
 
-
-
     const getLabelingData = async () => {
 
         try {
@@ -263,15 +261,24 @@ export function Labeling(props: LabelingProps) {
                 />
 
             </div>
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem', gap: '1rem' }}>
                 <Button
-                    // disabled={!selectedObject.WP || !selectedObject['Design Stage'] || !selectedObject.Elements || !selectedObject['Sub Disciplines']}
+                    disabled={!selectedObject.WP || !selectedObject['Design Stage'] || !selectedObject.Elements || !selectedObject['Sub Disciplines']}
                     style={{ textTransform: 'capitalize' }}
                     size='small'
                     variant='contained'
                     onClick={() => saveToSP()}
                 >
                     {props.dir ? 'שמור' : 'Save'}
+                </Button>
+                <Button
+                    style={{ textTransform: 'capitalize' }}
+                    size='small'
+                    variant='contained'
+                    color='error'
+                    onClick={() => props.onClose()}
+                >
+                    {props.dir ? 'בטל' : 'Cancel'}
                 </Button>
             </div>
         </>
