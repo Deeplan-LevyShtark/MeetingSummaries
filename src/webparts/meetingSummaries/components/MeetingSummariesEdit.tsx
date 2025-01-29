@@ -322,11 +322,33 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
 
 
         if (this.validateForm()) {
+
+            // Now take all the emails from attendees and absents and tasks and meetingContent and save them to the external users list
+            // Combine all arrays and extract names
+            // Extract all names
+            const allNames = [...attendees, ...absents, ...tasks, ...meetingContent]
+                .flatMap(item => Array.isArray(item?.name) ? item.name : []) // Ensure name is an array
+                .filter(name => typeof name === "string" && name.trim() !== ""); // Remove empty strings
+
+            // Extract all forInfo (only from tasks)
+            const allForInfo = tasks
+                .flatMap(item => Array.isArray(item?.forInfo) ? item.forInfo : []) // Ensure forInfo is an array
+                .filter(name => typeof name === "string" && name.trim() !== ""); // Remove empty strings
+
+            // Merge names and forInfo into one array
+            const combinedNames = Array.from(new Set([...allNames, ...allForInfo]));
+
+            // Map names to emails using this.state.users (matching Title)
+            const uniqueEmails = combinedNames
+                .map(name => this.state.users.find(user => user.Title.trim().toLowerCase() === name.trim().toLowerCase())?.Email)
+                .filter(Boolean).join(', '); // Remove undefined emails      
+
+
             if (submitType === 'save') {
                 try {
                     await Promise.all([
                         // Users
-                        saveEntities(users, this.props.sp, this.props.ExternalUsersOptions, 'name', attendees, absents, tasks, meetingContent),
+                        // saveEntities(users, this.props.sp, this.props.ExternalUsersOptions, 'name', attendees, absents, tasks, meetingContent),
                         // Companies
                         saveEntities(companies, this.props.sp, this.props.CompaniesList, 'company', attendees, absents, meetingContent)
                     ]);
@@ -348,6 +370,7 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                         submit: submitType,
                         Summarizing: currUser?.Title,
                         Copy: [...this.state.selectedUsers, ...this.state.selectedUsersFreeSolo].flat().join(', '),
+                        sendMailToAll: uniqueEmails,
                         FormLink: {
                             Description: MeetingSummary,
                             Url: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/MeetingSummaries.aspx?FormID=${this.props.FormID}`
@@ -380,6 +403,7 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                                 submit: submitType,
                                 Summarizing: currUser?.Title,
                                 Copy: [...this.state.selectedUsers, ...this.state.selectedUsersFreeSolo].flat().join(', '),
+                                sendMailToAll: uniqueEmails,
                                 FormLink: {
                                     Description: MeetingSummary,
                                     Url: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/MeetingSummaries.aspx?FormID=${this.props.FormID}`

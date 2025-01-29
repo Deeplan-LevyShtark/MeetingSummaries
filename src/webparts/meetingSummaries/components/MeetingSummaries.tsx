@@ -295,13 +295,38 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
       )
 
     if (this.validateForm()) {
+      try {
+        await Promise.all([
+          // Users
+          // saveEntities(users, this.props.sp, this.props.ExternalUsersOptions, 'name', attendees, absents, tasks, meetingContent),
+          // Companies
+          saveEntities(companies, this.props.sp, this.props.CompaniesList, 'company', attendees, absents, meetingContent)
+        ]);
 
-      await Promise.all([
-        // Users
-        saveEntities(users, this.props.sp, this.props.ExternalUsersOptions, 'name', attendees, absents, tasks, meetingContent),
-        // Companies
-        saveEntities(companies, this.props.sp, this.props.CompaniesList, 'company', attendees, absents, meetingContent)
-      ]);
+      } catch (error) {
+        console.error("Error saving entities:", error);
+      }
+
+      // Now take all the emails from attendees and absents and tasks and meetingContent and save them to the external users list
+      // Combine all arrays and extract names
+      // Extract all names
+      const allNames = [...attendees, ...absents, ...tasks, ...meetingContent]
+        .flatMap(item => Array.isArray(item?.name) ? item.name : []) // Ensure name is an array
+        .filter(name => typeof name === "string" && name.trim() !== ""); // Remove empty strings
+
+      // Extract all forInfo (only from tasks)
+      const allForInfo = tasks
+        .flatMap(item => Array.isArray(item?.forInfo) ? item.forInfo : []) // Ensure forInfo is an array
+        .filter(name => typeof name === "string" && name.trim() !== ""); // Remove empty strings
+
+      // Merge names and forInfo into one array
+      const combinedNames = Array.from(new Set([...allNames, ...allForInfo]));
+
+      // Map names to emails using this.state.users (matching Title)
+      const uniqueEmails = combinedNames
+        .map(name => this.state.users.find(user => user.Title.trim().toLowerCase() === name.trim().toLowerCase())?.Email)
+        .filter(Boolean).join(', '); // Remove undefined emails      
+
       try {
         await this.props.sp.web.lists.getById(this.props.MeetingSummariesListId).items.add({
           DateOfMeeting: moment(DateOfMeeting),
@@ -319,7 +344,8 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
           submit: submitType,
           Summarizing: currUser?.Title,
           Copy: [...this.state.selectedUsers, ...this.state.selectedUsersFreeSolo].flat().join(', '),
-          selectedLabeling: JSON.stringify(this.state.selectedLabeling)
+          selectedLabeling: JSON.stringify(this.state.selectedLabeling),
+          sendMailToAll: uniqueEmails
         }).then(async (item) => {
           itemId = item.Id
           await this.props.sp.web.lists.getById(this.props.MeetingSummariesListId).items.getById(item.Id).update({
@@ -628,27 +654,6 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
                     />
 
                   </section>
-
-                  {/* <div style={{ display: 'flex', justifyContent: 'start', gap: '1em' }}>
-                    <IconButton sx={{ gap: '0.5em' }} size='medium' onClick={() => this.setState({ addNewContactPopUp: true })}>
-                      <PersonAddIcon fontSize='medium' />
-                      <span>{this.state.currDir ? "איש קשר חדש" : "Add new contact"}</span>
-                    </IconButton>
-                  </div> */}
-
-                  {/* <div style={{ display: 'flex', justifyContent: 'start', gap: '1em', paddingTop: '1em', paddingBottom: '1em' }}>
-
-                    <Button
-                      variant="contained"
-                      size="medium"
-                      startIcon={<PersonAddIcon />} // Icon on the left side
-                      onClick={() => this.setState({ addNewContactPopUp: true })}
-                      sx={{ display: "flex", gap: "0.5em", textTransform: "capitalize" }}
-                    >
-                      {this.state.currDir ? "איש קשר חדש" : "Add New Contact"}
-                    </Button>
-                  </div> */}
-
 
                   <PopUp open={this.state.addNewContactPopUp} title={this.state.currDir ? "איש קשר חדש" : 'Add New Contact'} onClose={() => this.closeAddNewContactPopUp()} actions={null} dir={currDir ? 'rtl' : 'ltr'}>
                     <NewContact onClose={this.closeAddNewContactPopUp} dir={currDir} sp={this.props.sp} context={this.props.context} />

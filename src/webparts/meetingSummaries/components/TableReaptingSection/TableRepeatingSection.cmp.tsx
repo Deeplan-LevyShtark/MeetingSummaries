@@ -206,6 +206,7 @@ const TableRepeatingSection = memo(function TableRepeatingSection({
                     value={Array.isArray(value) ? value : value ? [value] : []}
                     multiple={true}
                     freeSolo={true}
+                    label='Name'
                     onChange={(id: any, newValue: any, email: any, isFreeSolo: boolean, ids: string[], onBlur: string) => {
 
                         onChangeGeneric(
@@ -230,6 +231,7 @@ const TableRepeatingSection = memo(function TableRepeatingSection({
                     value={Array.isArray(value) ? value : value ? [value] : []}
                     multiple={true}
                     freeSolo={true}
+                    label='ForInfo'
                     onChange={(id: any, newValue: any, email: any, isFreeSolo: boolean, forInfoIds: string[], onBlur: string) => {
                         onChangeGeneric(
                             { target: { value: newValue, Email: email, isFreeSolo, forInfoIds } },
