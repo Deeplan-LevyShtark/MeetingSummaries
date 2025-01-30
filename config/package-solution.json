@@ -3,7 +3,7 @@
   "solution": {
     "name": "meeting-summaries-client-side-solution",
     "id": "498c04a9-d86c-40f6-bdb1-7b55f7c20723",
-    "version": "1.0.0.1",
+    "version": "1.0.0.2",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,

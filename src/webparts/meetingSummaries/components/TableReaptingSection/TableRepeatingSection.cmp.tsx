@@ -30,6 +30,7 @@ interface TableTableRepeatingSection {
     companies: any,
     users: any,
     currDir: boolean
+    errors?: any
 }
 
 const noBorder = {
@@ -57,7 +58,8 @@ const TableRepeatingSection = memo(function TableRepeatingSection({
     context,
     companies,
     users,
-    currDir
+    currDir,
+    errors
 }: TableTableRepeatingSection) {
 
     const [localData, setLocalData] = useState(data);
@@ -207,6 +209,9 @@ const TableRepeatingSection = memo(function TableRepeatingSection({
                     multiple={true}
                     freeSolo={true}
                     label='Name'
+                    errors={errors}
+                    row={rowIndex}
+                    currDir={currDir}
                     onChange={(id: any, newValue: any, email: any, isFreeSolo: boolean, ids: string[], onBlur: string) => {
 
                         onChangeGeneric(

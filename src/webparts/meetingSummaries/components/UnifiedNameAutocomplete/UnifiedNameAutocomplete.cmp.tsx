@@ -23,6 +23,9 @@ interface UnifiedNameAutocompleteProps {
     multiple?: boolean;
     freeSolo?: boolean;
     size?: "small" | "medium";
+    errors?: any;
+    row?: any;
+    currDir?: boolean;
     onChange: (
         idOrValue: number | string | (number | string)[],
         newValue: string | string[],
@@ -44,6 +47,9 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
     freeSolo = false,
     size = "medium",
     onChange,
+    errors,
+    row,
+    currDir
 }) => {
     const [localInputValue, setLocalInputValue] = React.useState<string | string[]>(value || "");
     const [internalValue, setInternalValue] = React.useState<string | string[]>(value || "");
@@ -135,107 +141,123 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
 
     };
 
+    const taskErrorIndices = Object.keys(errors || {}) // Ensure `errors` is not undefined
+        .map(key => {
+            const match = key.match(/^tasks\[(\d+)\]\.name$/); // Regex to extract index from "tasks[X].name"
+            return match ? parseInt(match[1]) : null; // Convert to integer
+        })
+        .filter(index => index !== null);
+
     return (
-        <Autocomplete
-            size={size}
-            sx={sx}
-            options={users}
-            disableClearable
-            getOptionLabel={(option) => {
-                if (typeof option === "string") return option;
-                if (option?.Title) return option.Title;
-                return "";
-            }}
-            value={
-                multiple
-                    ? users.filter((u) => (Array.isArray(internalValue) ? internalValue : []).includes(u.Title))
-                    : users.find((u) => u.Title === internalValue) || null
-            }
-            freeSolo={freeSolo}
-            multiple={multiple}
-            inputValue={typeof localInputValue === "string" ? localInputValue : ""}
-            onInputChange={handleInputChange}
-            onChange={handleOptionChange}
-            onBlur={handleBlur}
-            isOptionEqualToValue={(option, value) => {
-                if (typeof value === "string") {
-                    return option.Title === value;
+        <div style={{ padding: '0.5rem', width: '100%' }}>
+
+            <Autocomplete
+                size={size}
+                sx={sx}
+                options={users}
+                disableClearable
+                getOptionLabel={(option) => {
+                    if (typeof option === "string") return option;
+                    if (option?.Title) return option.Title;
+                    return "";
+                }}
+                value={
+                    multiple
+                        ? users.filter((u) => (Array.isArray(internalValue) ? internalValue : []).includes(u.Title))
+                        : users.find((u) => u.Title === internalValue) || null
                 }
-                return option.Title === value.Title;
-            }}
-            renderTags={(value: string[], getTagProps) => {
-
-                return value.map((option: any, index) => (
-                    <Chip
-                        label={option.Title}
-                        {...getTagProps({ index })}
-                        // onDelete={() => handleDelete(option.Title)}
-                        deleteIcon={<CancelIcon />}
-                        style={{ marginRight: 8 }}
-                    />
-                ));
-            }}
-            renderInput={(inputParams) => (
-                <Tooltip
-                    title={
-                        Array.isArray(localInputValue)
-                            ? localInputValue.join(", ") // Show all selected Titles as a tooltip
-                            : localInputValue
+                freeSolo={freeSolo}
+                multiple={multiple}
+                inputValue={typeof localInputValue === "string" ? localInputValue : ""}
+                onInputChange={handleInputChange}
+                onChange={handleOptionChange}
+                onBlur={handleBlur}
+                isOptionEqualToValue={(option, value) => {
+                    if (typeof value === "string") {
+                        return option.Title === value;
                     }
-                >
-                    <TextField
-                        {...inputParams}
-                        // label={label}
-                        onBlur={handleBlur}
-                        inputRef={textFieldRef}
-                        InputProps={{
-                            ...inputParams.InputProps,
-                            startAdornment:
-                                multiple && Array.isArray(localInputValue) && (localInputValue as string[]).map((title) => (
-                                    <Chip
-                                        key={uuidv4()}
-                                        avatar={
-                                            <Avatar
-                                                src={`${context.pageContext.web.absoluteUrl}/_layouts/15/userphoto.aspx?UserName=${users.find(
-                                                    (u) => u.Title === title
-                                                )?.Email}&size=L`}
-                                                alt={title}
-                                            />
-                                        }
-                                        label={title}
-                                        onDelete={(e) => {
-                                            e.preventDefault();
-                                            handleDelete(title);
-                                        }}
-                                        deleteIcon={<CancelIcon />}
-                                        style={{ marginRight: 8 }}
-                                    />
-                                ))
+                    return option.Title === value.Title;
+                }}
+                renderTags={(value: string[], getTagProps) => {
 
-                            , style: { display: "flex" }
-                        }}
-                    />
-                </Tooltip>
+                    return value.map((option: any, index) => (
+                        <Chip
+                            label={option.Title}
+                            {...getTagProps({ index })}
+                            // onDelete={() => handleDelete(option.Title)}
+                            deleteIcon={<CancelIcon />}
+                            style={{ marginRight: 8 }}
+                        />
+                    ));
+                }}
+                renderInput={(inputParams) => (
+                    <Tooltip
+                        title={
+                            Array.isArray(localInputValue)
+                                ? localInputValue.join(", ") // Show all selected Titles as a tooltip
+                                : localInputValue
+                        }
+                    >
+                        <TextField
+                            {...inputParams}
+                            // label={label}
+                            onBlur={handleBlur}
+                            inputRef={textFieldRef}
+                            InputProps={{
+                                ...inputParams.InputProps,
+                                startAdornment:
+                                    multiple && Array.isArray(localInputValue) && (localInputValue as string[]).map((title) => (
+                                        <Chip
+                                            key={uuidv4()}
+                                            avatar={
+                                                <Avatar
+                                                    src={`${context.pageContext.web.absoluteUrl}/_layouts/15/userphoto.aspx?UserName=${users.find(
+                                                        (u) => u.Title === title
+                                                    )?.Email}&size=L`}
+                                                    alt={title}
+                                                />
+                                            }
+                                            label={title}
+                                            onDelete={(e) => {
+                                                e.preventDefault();
+                                                handleDelete(title);
+                                            }}
+                                            deleteIcon={<CancelIcon />}
+                                            style={{ marginRight: 8 }}
+                                        />
+                                    ))
+
+                                , style: { display: "flex" }
+                            }}
+                        />
+                    </Tooltip>
+                )}
+
+                renderOption={(props: any, option: any) => (
+                    <li
+                        {...props}
+                        key={uuidv4()}
+                        style={{ display: "flex", alignItems: "center", width: "100%" }}
+                    >
+                        <Avatar
+                            src={`${context.pageContext.web.absoluteUrl}/_layouts/15/userphoto.aspx?UserName=${option.Email}&size=L`}
+                            alt={option.Title}
+                            style={{ marginRight: 8, width: 30, height: 30 }}
+                        />
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                            {option.Title}
+                            <span style={{ fontSize: 12, color: "gray" }}>{option.Email}</span>
+                        </div>
+                    </li>
+                )}
+                fullWidth
+            />
+            {taskErrorIndices.length !== 0 && taskErrorIndices.includes(row) && (
+                <div style={{ padding: '0.5rem', fontSize: '0.8rem', color: 'red' }}>
+                    <span>{currDir ? 'נדרש אחראי מלוי שטארק' : 'Require LSZ responsible'}</span>
+                </div>
             )}
 
-            renderOption={(props: any, option: any) => (
-                <li
-                    {...props}
-                    key={uuidv4()}
-                    style={{ display: "flex", alignItems: "center", width: "100%" }}
-                >
-                    <Avatar
-                        src={`${context.pageContext.web.absoluteUrl}/_layouts/15/userphoto.aspx?UserName=${option.Email}&size=L`}
-                        alt={option.Title}
-                        style={{ marginRight: 8, width: 30, height: 30 }}
-                    />
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                        {option.Title}
-                        <span style={{ fontSize: 12, color: "gray" }}>{option.Email}</span>
-                    </div>
-                </li>
-            )}
-            fullWidth
-        />
+        </div>
     );
 };

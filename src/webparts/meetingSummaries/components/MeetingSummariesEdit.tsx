@@ -239,9 +239,29 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                 isValid = false;
             }
         });
-        console.log("errors:", errors)
+        const tasks = this.state.tasks;
 
-        this.setState({ errors });
+        const newErrors = { ...errors }; // Create a copy to modify
+
+        tasks.forEach((task: any, index: number) => {
+            if (Array.isArray(task.name)) { // Ensure task.name is an array
+                const validTasks = task.name.some((name: string) =>
+                    this.state.users.some(user => user.Email.includes("lsz") && user.Title === name)
+                );
+
+                if (!validTasks && task.name.length !== 0) {
+                    isValid = false;
+                    newErrors[`tasks[${index}].name`] = t.required;
+                } else {
+                    if (newErrors.hasOwnProperty(`tasks[${index}].name`)) {
+                        delete newErrors[`tasks[${index}].name`]; // Now properly removes the key
+                    }
+                }
+            }
+        });
+
+        this.setState({ errors: newErrors });
+
         return isValid;
     };
 
@@ -773,6 +793,7 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                                             companies={this.state.companies}
                                             users={users}
                                             currDir={currDir}
+                                            errors={errors}
                                         />
                                     </ThemeProvider>
 
@@ -797,7 +818,7 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                                             <span>{t["File location"]}: </span>
                                             {libraryName !== '' ?
                                                 <div style={{ display: 'flex', flexDirection: 'row', gap: '1em', alignItems: 'center' }}>
-                                                    <span style={{ color: '#5989f6' }}>{libraryName}</span> <ClearIcon fontSize='small' className={styles.ClearIcon} onClick={() => { this.setState({ libraryName: '', libraryPath: '' }) }} />
+                                                    <span style={{ color: '#5989f6' }}>{libraryName}</span> <ClearIcon fontSize='small' className={styles.ClearIcon} onClick={() => { this.setState({ libraryName: '', libraryPath: '', selectedLabeling: null }) }} />
                                                 </div> : null}
                                         </div>
                                         {this.requireErrorJSX('libraryPath')}
