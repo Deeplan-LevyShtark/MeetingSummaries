@@ -447,17 +447,21 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                                           .items.top(1) 
                                           .filter(`ID eq ${item}`)();
                           
-                                      return items[0]?.Title?.trim() || null;
+                                      return items[0] || null;
                                   })
                               );
-                          
                               task.ids = task.ids.filter((_, index) => {
-                                  const match = array[index].trim() === itemsList[index];
+                                     
+                                  const match = array[index].trim() === itemsList[index]?.Title?.trim();
                                   
                                   if (match){
               
                                     AssignedToExternal.push(array[index].trim());
-                                    RemovedIds.push(parseInt(_));
+                                    console.log(itemsList[index].Company);
+                                    
+                                    if(itemsList[index].Company !== "NTA" ){
+                                      RemovedIds.push(parseInt(_));
+                                    }
                                   } 
                                   return !match;
                               });

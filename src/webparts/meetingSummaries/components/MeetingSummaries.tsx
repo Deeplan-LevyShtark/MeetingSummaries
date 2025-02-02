@@ -26,6 +26,7 @@ import { Labeling } from './Labeling/Labeling';
 import SourceIcon from '@mui/icons-material/Source';
 import { NewContact } from './NewContact/NewContact';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import { LocalFireDepartment } from '@mui/icons-material';
 
 export interface IMeetingSummariesProps {
   userDisplayName: string;
@@ -402,21 +403,30 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
                             .items.top(1) 
                             .filter(`ID eq ${item}`)();
             
-                        return items[0]?.Title?.trim() || null;
+                        return items[0] || null;
                     })
                 );
-            
                 task.ids = task.ids.filter((_, index) => {
-                    const match = array[index].trim() === itemsList[index];
+                       
+                    const match = array[index].trim() === itemsList[index]?.Title?.trim();
                     
                     if (match){
 
                       AssignedToExternal.push(array[index].trim());
-                      RemovedIds.push(parseInt(_));
+                      console.log(itemsList[index].Company);
+                      
+                      if(itemsList[index].Company !== "NTA" ){
+                        RemovedIds.push(parseInt(_));
+                      }
                     } 
                     return !match;
                 });
             }
+
+     
+            
+            
+
                           
                 
               
@@ -431,7 +441,7 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
                 await this.props.sp.web.lists.getById(this.props.TasksListId).items.add({
                   Title: task.subject,
                   MeetingSummaryDate: DateOfMeeting,
-                   AssignedToInternalId: task.ids && task.ids.filter(id => id !== ''),
+                  AssignedToInternalId: task.ids && task.ids.filter(id => id !== ''),
                    ExternalUserLookupId:RemovedIds, 
                    AssignedToExternal: AssignedToExternal.join(', '),
                    

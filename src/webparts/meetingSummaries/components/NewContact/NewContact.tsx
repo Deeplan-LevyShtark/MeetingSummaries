@@ -1,6 +1,6 @@
 import * as React from "react";
 import styles from "./NewContact.module.scss";
-import { Button, TextField } from "@mui/material";
+import { Autocomplete, Button, TextField } from "@mui/material";
 import { SPFI } from "@pnp/sp";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 
@@ -14,8 +14,24 @@ export interface INewContactProps {
 export function NewContact(props: INewContactProps) {
     const [fullName, setFullName] = React.useState<string>("");
     const [email, setEmail] = React.useState<string>("");
+    const [Options, setOptions] = React.useState<Array<string>>([]);
+    const [company, setcompany] = React.useState<string>("");
+
     const [saving, setSaving] = React.useState<boolean>(false); // Track loading state
 
+    React.useEffect(() => {
+        async function fetchCompanies() {
+            try {
+                const items = await props.sp.web.lists.getByTitle("Companies").items();
+                const titles = items.map((item: any) => item.Title);
+                setOptions(titles);
+            } catch (error) {
+                console.error("Error fetching companies:", error);
+            }
+        }
+
+        fetchCompanies();
+    }, [props.sp]);
     // Email validation regex
     function isValidEmail(email: string): boolean {
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -39,6 +55,8 @@ export function NewContact(props: INewContactProps) {
                 .items.add({
                     Title: fullName, // Save Name
                     Email: email, // Save Email
+                    Company:company
+                    
                 });
 
             alert(props.dir ? "איש קשר נשמר בהצלחה" : "Contact saved successfully!");
@@ -64,7 +82,20 @@ export function NewContact(props: INewContactProps) {
                     helperText={!isValidFullName(fullName) && fullName.length > 0 ? props.dir ? "שם מלא חייב להכיל לפחות 2 אותיות" : "Full Name must be at least 2 characters" : ""}
                     required
                 />
+                <Autocomplete
+                    fullWidth
+                    size="small"
+                    options={Options}
+                    //getOptionLabel={(option) => || ""}
+                    value={company || null} // Controlled value
+                    onChange={(event, newValue: any) =>
+                        setcompany(newValue)
 
+                    }
+                    renderInput={(params) => (
+                        <TextField {...params} label={props.dir ? "חברה" : "Company"} variant="outlined" />
+                    )}
+                />
                 <TextField
                     size="small"
                     fullWidth
