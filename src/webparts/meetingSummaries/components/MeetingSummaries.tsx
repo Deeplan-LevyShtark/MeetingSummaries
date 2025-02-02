@@ -380,26 +380,61 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
       } catch (err) {
         console.error("Error saving Meeting Summary:", err);
       }
-
+      
+      console.log(submitType);
+      
       if (submitType === 'send') {
         // Show confirmation dialog
-        await confirmSaveAndSend({
+       await confirmSaveAndSend({
           currDir,
           onConfirm: async () => {
+          
+            
             for (const task of reformattedTasks) {
+              const AssignedToExternal: string[] = [];
+              const RemovedIds: number[] = [];  
+              const array = task.name.split(',');
+              if (task.ids?.length) {
+                const itemsList = await Promise.all(
+                    task.ids.map(async (item: any) => {
+                        const items = await this.props.sp.web.lists
+                            .getByTitle("External Users Options")
+                            .items.top(1) 
+                            .filter(`ID eq ${item}`)();
+            
+                        return items[0]?.Title?.trim() || null;
+                    })
+                );
+            
+                task.ids = task.ids.filter((_, index) => {
+                    const match = array[index].trim() === itemsList[index];
+                    
+                    if (match){
+
+                      AssignedToExternal.push(array[index].trim());
+                      RemovedIds.push(parseInt(_));
+                    } 
+                    return !match;
+                });
+            }
+                          
+                
+              
               try {
                 const filteredAssignToExternal = users.filter(user =>
                   task.name.split(', ').includes(user.Title)
                 );
-                const filterAssignToInternal = task.name
-                  .split(', ')
-                  .filter(name => filteredAssignToExternal.every(user => user.Title !== name));
+                // const filterAssignToInternal = task.name
+                // .split(', ')
+                // .filter(name => filteredAssignToExternal.every(user => user.Title !== name));
 
                 await this.props.sp.web.lists.getById(this.props.TasksListId).items.add({
                   Title: task.subject,
                   MeetingSummaryDate: DateOfMeeting,
-                  AssignedToInternalId: task.ids && task.ids.filter(id => id !== ''),
-                  AssignedToExternal: task.ids && task.ids.filter(id => id !== '').length === 0 ? task.name : filterAssignToInternal.join(', '),
+                   AssignedToInternalId: task.ids && task.ids.filter(id => id !== ''),
+                   ExternalUserLookupId:RemovedIds, 
+                   AssignedToExternal: AssignedToExternal.join(', '),
+                   
                   MeetingSummaryName: MeetingSummary,
                   StartDate: task.startDate,
                   EndDate: task.endDate,

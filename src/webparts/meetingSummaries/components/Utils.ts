@@ -237,7 +237,7 @@ export const confirmSaveAndSend = async (options: any) => {
         onCancel,
         currDir
     } = options;
-
+    
     const t = currDir ? require('../../../locales/he/common.json') : require('../../../locales/en/common.json') // Translator between en/he
 
     return Swal.fire({
