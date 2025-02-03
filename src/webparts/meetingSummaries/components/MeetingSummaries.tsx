@@ -181,7 +181,10 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
   }
 
   libraryPathHandle = (selectedLabeling: any): void => {
+    console.log(selectedLabeling);
+    
     this.setState({ libraryPath: selectedLabeling?.libraryPath, libraryName: selectedLabeling?.libraryName, selectedLabeling: selectedLabeling }, () => {
+      
       this.handleErrorRequire(selectedLabeling?.libraryPath, 'libraryPath')
     })
   }
@@ -841,7 +844,7 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
                     <PopUp open={this.state.folderPopUp} onClose={() => { this.closeFolderPopUp() }} title={t["Choose where to file the meeting summary"]} actions={null} dir={currDir ? 'rtl' : 'ltr'}>
                       <Labeling selectedLabeling={this.state.selectedLabeling} sp={this.props.sp} context={this.props.context} dir={currDir} users={users} onSave={this.libraryPathHandle} onClose={this.closeFolderPopUp}></Labeling>
                     </PopUp>
-
+                {console.log(libraryName)}
                     <div style={{ display: 'flex', gap: '1em', alignItems: 'center' }}>
                       <span>{t["File location"]}: </span>
                       {libraryName !== '' ?

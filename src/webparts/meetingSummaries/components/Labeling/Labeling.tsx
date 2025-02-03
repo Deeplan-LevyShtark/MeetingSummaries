@@ -109,20 +109,32 @@ export function Labeling(props: LabelingProps) {
         options: any[],
         label: string, // Ensure it matches selectedObject keys
         valueField: any,
-        required?: boolean
+        required?: boolean,
+        multiple?: boolean
     ) {
+
+        
         return (
             <Autocomplete
+               multiple={multiple}
                 fullWidth
                 size="small"
                 options={options}
                 getOptionLabel={(option) => option[valueField] || ""}
-                value={selectedObject[label] || null} // Controlled value
-                onChange={(event, newValue) =>
+
+                value={
+                    selectedObject[label]
+                      ? selectedObject[label]
+                      : 
+                      multiple === true
+                      ? []
+                      : null
+                  }
+                     onChange={(event, newValue) =>   
                     setSelectedObject((prev: any) => ({
                         ...prev,
                         [label]: newValue || undefined, // Ensure it updates correctly
-                    }))
+                    }))                   
                 }
                 renderInput={(params) => (
                     <TextField {...params} label={label} variant="outlined" required={required} />
@@ -153,7 +165,7 @@ export function Labeling(props: LabelingProps) {
         return url;
     }
 
-    function buildJsonPayload(data: InputData) {
+    async function buildJsonPayload(data: InputData) {
         let jsonToSave: Record<string, any> = {
             "__metadata": {
                 "type": `SP.Data.${data.documentLibraryNameMapped}Item`
@@ -171,24 +183,32 @@ export function Labeling(props: LabelingProps) {
         addField("Rev", data.Rev !== null && data.Rev !== undefined ? Number(data.Rev) : 0);
 
         // Lookup fields (ensure Collection(Edm.Int32) format)
-        const addLookupField = (key: string, lookupObject?: LookupField) => {
-            if (lookupObject?.Id !== undefined && lookupObject?.Id !== null) {
+        const addLookupField = async (key: string, lookupObject?: any) => {
+            if (lookupObject !== undefined && lookupObject !== null) {
+                console.log(lookupObject);
+                console.log(key);
+
+                
                 jsonToSave[key] = {
                     "__metadata": { "type": "Collection(Edm.Int32)" },
-                    "results": [lookupObject.Id]
+                    "results": lookupObject instanceof Array
+                        ? await Promise.all(lookupObject.map((item: any) => item.Id))
+                        : [ lookupObject.Id ]
                 };
             }
         };
-
-        addLookupField("OData__WPId", data.WP);
-        addLookupField("subDisciplineId", data["Sub Disciplines"]);
-        addLookupField("ElementNameAndCodeId", data.Elements);
-        addLookupField("OData__designStageId", data["Design Stage"]);
-        addLookupField("OData__DocumentStatusId", data["Document Status"]);
+        
+        
+         await addLookupField("OData__WPId", data.WP);
+         await addLookupField("subDisciplineId", data["Sub Disciplines"]);
+         await addLookupField("ElementNameAndCodeId", data.Elements);
+         await addLookupField("OData__designStageId", data["Design Stage"]);
+         await addLookupField("OData__DocumentStatusId", data["Document Status"]);
 
         // String field (only add if not empty)
         addField("DesignerNameId", data.AuthorDesingerName);
-
+        console.log(jsonToSave);
+        
         return jsonToSave;
     }
 
@@ -208,12 +228,14 @@ export function Labeling(props: LabelingProps) {
         };
 
         const jsonPayload = buildJsonPayload(inputDate);
+        console.log(selectedObject["Sub Disciplines"][0].SubDiscipline);
+        
 
         const selectedLabeling = {
             ...selectedObject,
             Id: uuidv4(),
-            libraryPath: `${mapWP[selectedObject?.WP.Title]}/${selectedObject['Design Stage']?.Title}/${selectedObject.Elements?.ElementNameAndCode}/${selectedObject['Sub Disciplines']?.SubDiscipline}`,
-            libraryName: `${selectedObject?.WP.Title}/${selectedObject['Design Stage']?.Title}/${selectedObject.Elements?.ElementNameAndCode}/${selectedObject['Sub Disciplines']?.SubDiscipline}`,
+            libraryPath: `${mapWP[selectedObject?.WP.Title]}/${selectedObject['Design Stage'][0]?.Title}/${selectedObject.Elements[0]?.ElementNameAndCode}/${selectedObject['Sub Disciplines'][0]?.SubDiscipline}`,
+            libraryName: `${selectedObject?.WP.Title}/${selectedObject['Design Stage'][0]?.Title}/${selectedObject.Elements[0]?.ElementNameAndCode}/${selectedObject['Sub Disciplines'][0]?.SubDiscipline}`,
             documentLibraryName: selectedObject?.WP.Title,
             documentLibraryNameMapped: mapWP[selectedObject?.WP.Title],
             jsonPayload: jsonPayload,
@@ -236,12 +258,12 @@ export function Labeling(props: LabelingProps) {
         <>
             <div className={styles.labelingContainer}>
                 {AutoCompleteLabeling(designData.Design_WP, 'WP', 'Title', true)}
-                {AutoCompleteLabeling(designData.Design_DesignStage, 'Design Stage', 'Title', true)}
+                {AutoCompleteLabeling(designData.Design_DesignStage, 'Design Stage', 'Title', true,true)}
                 {AutoCompleteLabeling(selectedObject.WP ? designData.Elements.filter((element) => element.WP === selectedObject.WP?.Title) : designData.Elements,
-                    'Elements', 'ElementNameAndCode', true)}
-                {AutoCompleteLabeling(designData.DesignDisciplinesSubDisciplines, 'Sub Disciplines', 'SubDiscipline', true)}
+                    'Elements', 'ElementNameAndCode', true,true)}
+                {AutoCompleteLabeling(designData.DesignDisciplinesSubDisciplines, 'Sub Disciplines', 'SubDiscipline', true,true)}
                 <TextField value={selectedObject.Rev !== null && selectedObject.Rev !== undefined ? selectedObject.Rev : 0} type='number' label='Rev' size='small' fullWidth onChange={(event) => handleRevChange(event, 'Rev')}></TextField>
-                {AutoCompleteLabeling(designData.Design_DocumentStatus, 'Document Status', 'Title')}
+                {AutoCompleteLabeling(designData.Design_DocumentStatus, 'Document Status', 'Title',false,true)}
                 <UnifiedNameAutocomplete
                     value={
                         props.users.filter((user) => user.Id === selectedObject.AuthorDesingerName)[0]?.Title ?? ''
