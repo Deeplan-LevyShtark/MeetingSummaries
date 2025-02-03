@@ -5,7 +5,6 @@ import { Avatar, Tooltip, Chip } from "@mui/material";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { v4 as uuidv4 } from "uuid";
 import CancelIcon from '@mui/icons-material/Cancel';
-import { update } from "@microsoft/sp-lodash-subset";
 
 interface User {
     Id: number;
@@ -150,7 +149,8 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
 
     return (
         <div style={{ padding: '0.5rem', width: '100%' }}>
-
+         
+            
             <Autocomplete
                 size={size}
                 sx={sx}
@@ -200,7 +200,7 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
                     >
                         <TextField
                             {...inputParams}
-                            // label={label}
+                            label={label === "Author/Designer Name" ? label : ""}
                             onBlur={handleBlur}
                             inputRef={textFieldRef}
                             InputProps={{
@@ -217,6 +217,7 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
                                                     alt={title}
                                                 />
                                             }
+                                          
                                             label={title}
                                             onDelete={(e) => {
                                                 e.preventDefault();

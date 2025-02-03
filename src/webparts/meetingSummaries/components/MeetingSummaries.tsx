@@ -2,7 +2,7 @@ import React, { createRef } from 'react';
 import styles from './MeetingSummaries.module.scss';
 import { SPFI } from '@pnp/sp';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { TextField, Paper, Divider, LinearProgress, Button, Typography, Switch } from '@mui/material';
+import { Autocomplete,TextField, Paper, Divider, LinearProgress, Button, Typography, Switch } from '@mui/material';
 import { Header } from './Header/Header';
 import Loader from './Loader/Loader.cmp';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -27,6 +27,7 @@ import SourceIcon from '@mui/icons-material/Source';
 import { NewContact } from './NewContact/NewContact';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { LocalFireDepartment } from '@mui/icons-material';
+
 
 export interface IMeetingSummariesProps {
   userDisplayName: string;
@@ -134,19 +135,20 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
           .catch(err => { console.error("Error fetching Companies:", err); throw err }),
         this.props.sp.web.lists.getById(this.props.ExternalUsersOptions).items()
           .catch(err => { console.error("Error fetching External Users:", err); throw err }),
-        this.props.sp.web.siteUsers.select('Id, Title, Email').filter("Email ne ''")()
+        this.props.sp.web.siteUsers.select('Id, Title, Email, PrincipalType').filter("Email ne ''")()
           .catch(err => { console.error("Error fetching Users:", err); throw err })
       ]);
 
       // Extract only the 'Title' from companies
       const companies = companiesList?.map((company) => company.Title) || [];
-
+      //console.log(users.filter(user => {return user.PrincipalType === 1}));
+      
       // Update state with resolved data
       this.setState({
         currUser: user,
         companies: companies,
         externalUsers: externalUsers,
-        users: [...users, ...externalUsers]
+        users: [...users.filter(user => {return user.PrincipalType === 1}), ...externalUsers]
       });
     } catch (error) {
       console.error("Error initializing data:", error);
@@ -609,6 +611,7 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
     });
   };
 
+
   public render(): React.ReactElement<IMeetingSummariesProps> {
 
     const { currUser, currDir, LoadingForm, DateOfMeeting, users, libraryName, errors, attendees, absents, tasks, meetingContent } = this.state
@@ -771,7 +774,24 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'row', marginTop: '1em', marginBottom: '1em' }}>
-                      <TextField variant='standard' name='freeSoloUser' onBlur={this.onChange} type='text' />
+                    <Autocomplete
+        freeSolo
+        options={users.map((item:any)=>{return item.Title})} 
+        value={this.state.freeSoloUser}
+
+        onChange={(event, value) => { this.setState({ freeSoloUser: value })}}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="standard"
+            name="freeSoloUser"
+            type="text"
+            style={{width:300}}
+            fullWidth
+          />
+        )}
+      />
+                      {/* <TextField variant='standard' name='freeSoloUser' onBlur={this.onChange} type='text' /> */}
                       <Button onClick={this.onClickFreeSolo}><span style={{ fontSize: '20px' }}>+</span></Button>
                     </div>
                     <TableRepeatingSection
