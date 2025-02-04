@@ -198,6 +198,8 @@ export function Labeling(props: LabelingProps) {
             }
         };
         
+        console.log( data.WP);
+        console.log( data["Sub Disciplines"]);
         
          await addLookupField("OData__WPId", data.WP);
          await addLookupField("subDisciplineId", data["Sub Disciplines"]);
@@ -212,12 +214,12 @@ export function Labeling(props: LabelingProps) {
         return jsonToSave;
     }
 
-    function saveToSP() {
+    async function saveToSP() {
         // Save data to SP here
         const libraryPath = urlBuilder();
 
         const inputDate: InputData = {
-            documentLibraryNameMapped: mapWP[selectedObject.WP?.Title],
+            documentLibraryNameMapped: mapWP[selectedObject.WP[0]?.Title],
             Rev: selectedObject.Rev,
             WP: selectedObject.WP,
             "Sub Disciplines": selectedObject["Sub Disciplines"],
@@ -227,15 +229,15 @@ export function Labeling(props: LabelingProps) {
             AuthorDesingerName: selectedObject?.AuthorDesingerName
         };
 
-        const jsonPayload = buildJsonPayload(inputDate);
+        const jsonPayload = await buildJsonPayload(inputDate);
         console.log(selectedObject["Sub Disciplines"][0].SubDiscipline);
         
 
         const selectedLabeling = {
             ...selectedObject,
             Id: uuidv4(),
-            libraryPath: `${mapWP[selectedObject?.WP.Title]}/${selectedObject['Design Stage'][0]?.Title}/${selectedObject.Elements[0]?.ElementNameAndCode}/${selectedObject['Sub Disciplines'][0]?.SubDiscipline}`,
-            libraryName: `${selectedObject?.WP.Title}/${selectedObject['Design Stage'][0]?.Title}/${selectedObject.Elements[0]?.ElementNameAndCode}/${selectedObject['Sub Disciplines'][0]?.SubDiscipline}`,
+            libraryPath: `${mapWP[selectedObject?.WP[0]?.Title]}/${selectedObject['Design Stage'][0]?.Title}/${selectedObject.Elements[0]?.ElementNameAndCode}/${selectedObject['Sub Disciplines'][0]?.SubDiscipline}`,
+            libraryName: `${selectedObject?.WP[0]?.Title}/${selectedObject['Design Stage'][0]?.Title}/${selectedObject.Elements[0]?.ElementNameAndCode}/${selectedObject['Sub Disciplines'][0]?.SubDiscipline}`,
             documentLibraryName: selectedObject?.WP.Title,
             documentLibraryNameMapped: mapWP[selectedObject?.WP.Title],
             jsonPayload: jsonPayload,
@@ -256,10 +258,12 @@ export function Labeling(props: LabelingProps) {
 
     return (
         <>
+        
             <div className={styles.labelingContainer}>
-                {AutoCompleteLabeling(designData.Design_WP, 'WP', 'Title', true)}
+        {console.log(selectedObject.WP)}
+                {AutoCompleteLabeling(designData.Design_WP, 'WP', 'Title', true,true)}
                 {AutoCompleteLabeling(designData.Design_DesignStage, 'Design Stage', 'Title', true,true)}
-                {AutoCompleteLabeling(selectedObject.WP ? designData.Elements.filter((element) => element.WP === selectedObject.WP?.Title) : designData.Elements,
+                {AutoCompleteLabeling(selectedObject.WP ? designData.Elements.filter((element) => element.WP === selectedObject.WP[0]?.Title) : designData.Elements,
                     'Elements', 'ElementNameAndCode', true,true)}
                 {AutoCompleteLabeling(designData.DesignDisciplinesSubDisciplines, 'Sub Disciplines', 'SubDiscipline', true,true)}
                 <TextField value={selectedObject.Rev !== null && selectedObject.Rev !== undefined ? selectedObject.Rev : 0} type='number' label='Rev' size='small' fullWidth onChange={(event) => handleRevChange(event, 'Rev')}></TextField>

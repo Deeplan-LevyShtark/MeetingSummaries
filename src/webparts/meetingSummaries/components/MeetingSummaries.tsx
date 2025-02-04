@@ -346,8 +346,10 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
         .flatMap(item => Array.isArray(item?.forInfo) ? item.forInfo : []) // Ensure forInfo is an array
         .filter(name => typeof name === "string" && name.trim() !== ""); // Remove empty strings
 
+       
       // Merge names and forInfo into one array
       const combinedNames = Array.from(new Set([...allNames, ...allForInfo]));
+      
 
       // Map names to emails using this.state.users (matching Title)
       const uniqueEmails = combinedNames
