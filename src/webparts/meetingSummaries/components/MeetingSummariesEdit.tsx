@@ -284,7 +284,7 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                 }
 
                 if (typeof val === 'string') {
-                    return val.trim().length > 0;
+                    return val?.trim().length > 0;
                 }
 
                 // Check if the value is a moment date and if it's before now
@@ -348,23 +348,23 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
             // Extract all names
             const allNames = [...attendees, ...absents, ...tasks, ...meetingContent]
                 .flatMap(item => Array.isArray(item?.name) ? item.name : []) // Ensure name is an array
-                .filter(name => typeof name === "string" && name.trim() !== ""); // Remove empty strings
+                .filter(name => typeof name === "string" && name?.trim() !== ""); // Remove empty strings
 
             // Extract all forInfo (only from tasks)
             const allForInfo = tasks
                 .flatMap(item => Array.isArray(item?.forInfo) ? item.forInfo : []) // Ensure forInfo is an array
-                .filter(name => typeof name === "string" && name.trim() !== ""); // Remove empty strings
+                .filter(name => typeof name === "string" && name?.trim() !== ""); // Remove empty strings
 
             // Merge names and forInfo into one array
             const combinedNames = Array.from(new Set([...allNames, ...allForInfo]));
 
             // Map names to emails using this.state.users (matching Title)
             const uniqueEmails = combinedNames
-                .map(name => this.state.users.find(user => user.Title.trim().toLowerCase() === name.trim().toLowerCase())?.Email)
+                .map(name => this.state.users.find(user => user.Title?.trim().toLowerCase() === name?.trim().toLowerCase())?.Email)
                 .filter(Boolean).join(', '); // Remove undefined emails      
 
             console.log(submitType);
-            
+
             if (submitType === 'save') {
                 try {
                     await Promise.all([
@@ -433,40 +433,40 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                         } catch (error) {
                             console.error(error);
                         }
-               
+
                         for (const task of reformattedTasks) {
 
                             const AssignedToExternal: string[] = [];
-                            const RemovedIds: number[] = [];  
+                            const RemovedIds: number[] = [];
                             const array = task.name.split(',');
                             if (task.ids?.length) {
-                              const itemsList = await Promise.all(
-                                  task.ids.map(async (item: any) => {
-                                      const items = await this.props.sp.web.lists
-                                          .getByTitle("External Users Options")
-                                          .items.top(1) 
-                                          .filter(`ID eq ${item}`)();
-                          
-                                      return items[0] || null;
-                                  })
-                              );
-                              task.ids = task.ids.filter((_, index) => {
-                                     
-                                  const match = array[index].trim() === itemsList[index]?.Title?.trim();
-                                  
-                                  if (match){
-              
-                                    AssignedToExternal.push(array[index].trim());
-                                    console.log(itemsList[index].Company);
-                                    
-                                    if(itemsList[index].Company !== "NTA" ){
-                                      RemovedIds.push(parseInt(_));
+                                const itemsList = await Promise.all(
+                                    task.ids.map(async (item: any) => {
+                                        const items = await this.props.sp.web.lists
+                                            .getByTitle("External Users Options")
+                                            .items.top(1)
+                                            .filter(`ID eq ${item}`)();
+
+                                        return items[0] || null;
+                                    })
+                                );
+                                task.ids = task.ids.filter((_, index) => {
+
+                                    const match = array[index]?.trim() === itemsList[index]?.Title?.trim();
+
+                                    if (match) {
+
+                                        AssignedToExternal.push(array[index]?.trim());
+                                        console.log(itemsList[index].Company);
+
+                                        if (itemsList[index].Company !== "NTA") {
+                                            RemovedIds.push(parseInt(_));
+                                        }
                                     }
-                                  } 
-                                  return !match;
-                              });
-                          }
-                            
+                                    return !match;
+                                });
+                            }
+
                             try {
                                 const filteredAssignToExternal = users.filter(user =>
                                     task.name.split(', ').includes(user.Title)
@@ -478,10 +478,10 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                                 await this.props.sp.web.lists.getById(this.props.TasksListId).items.add({
                                     Title: task.subject,
                                     MeetingSummaryDate: DateOfMeeting,
-                                     AssignedToInternalId: task.ids && task.ids.filter(id => id !== ''),
-                                     ExternalUserLookupId:RemovedIds, 
-                                     AssignedToExternal: AssignedToExternal.join(', '),
-                                     MeetingSummaryName: MeetingSummary,
+                                    AssignedToInternalId: task.ids && task.ids.filter(id => id !== ''),
+                                    ExternalUserLookupId: RemovedIds,
+                                    AssignedToExternal: AssignedToExternal.join(', '),
+                                    MeetingSummaryName: MeetingSummary,
                                     StartDate: task.startDate,
                                     EndDate: task.endDate,
                                     Description: task.description,
@@ -573,14 +573,14 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
     onClickFreeSolo = () => {
         const { freeSoloUser } = this.state;
 
-        if (!freeSoloUser.trim()) {
+        if (!freeSoloUser?.trim()) {
             // If freeSoloUser is empty or only spaces, do nothing
             return;
         }
 
         this.setState((prevState: any) => ({
             selectedUsersFreeSolo: Array.from(
-                new Set([...prevState.selectedUsersFreeSolo, freeSoloUser.trim()])
+                new Set([...prevState.selectedUsersFreeSolo, freeSoloUser?.trim()])
             ),
             freeSoloUser: '' // Reset the input field
         }));

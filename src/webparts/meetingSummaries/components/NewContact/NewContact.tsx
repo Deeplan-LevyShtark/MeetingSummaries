@@ -40,7 +40,7 @@ export function NewContact(props: INewContactProps) {
 
     // Name validation (at least 2 characters)
     function isValidFullName(name: string): boolean {
-        return name.trim().length >= 2;
+        return name?.trim().length >= 2;
     }
 
     // Save contact to SharePoint list
@@ -55,8 +55,8 @@ export function NewContact(props: INewContactProps) {
                 .items.add({
                     Title: fullName, // Save Name
                     Email: email, // Save Email
-                    Company:company
-                    
+                    Company: company
+
                 });
 
             alert(props.dir ? "איש קשר נשמר בהצלחה" : "Contact saved successfully!");

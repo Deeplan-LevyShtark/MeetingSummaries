@@ -79,7 +79,7 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
             }).filter(email => email !== ""); // Filter out empty strings      
             onChange(params?.id ?? localInputValue, localInputValue, filterdEmails, true, ids, 'onBlur');
         }
-        else if (localInputValue.trim() !== "" && (label === 'Name' || label !== 'ForInfo')) {
+        else if (localInputValue?.trim() !== "" && (label === 'Name' || label !== 'ForInfo')) {
             const updatedValue = [...(internalValue as string[]), localInputValue];
             setInternalValue(updatedValue);
             const filterdEmails = users.filter((u) => (updatedValue as string[]).includes(u.Title)).map((u) => u.Email);
@@ -148,9 +148,9 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
         .filter(index => index !== null);
 
     return (
-        <div style={{ padding: '0.5rem', width: '100%' }}>
-         
-            
+        <div style={{ width: '100%' }}>
+
+
             <Autocomplete
                 size={size}
                 sx={sx}
@@ -217,7 +217,7 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
                                                     alt={title}
                                                 />
                                             }
-                                          
+
                                             label={title}
                                             onDelete={(e) => {
                                                 e.preventDefault();
