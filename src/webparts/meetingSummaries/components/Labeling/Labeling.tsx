@@ -1,19 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { Autocomplete, Button, TextField } from '@mui/material';
+import { Autocomplete, Button, Fab, IconButton, TextField } from '@mui/material';
 import { SPFI } from '@pnp/sp';
 import styles from './Labeling.module.scss';
 import { v4 as uuidv4 } from 'uuid';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { UnifiedNameAutocomplete } from '../UnifiedNameAutocomplete/UnifiedNameAutocomplete.cmp';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+
+const WP_PHASE_ARRAY = ['Infra 2', 'Alignment', '(3rd Party)', 'cordination (danon)'];
+const HAS_NO_ELEMETNS = ['Infra 2', 'General']
+const HAS_NO_SUB_DICIPLINES = ['General', 'Alignment']
 
 interface LookupField {
     Id?: number | null;
+    Title?: string
 }
 
 interface InputData {
     documentLibraryNameMapped: string;
     Rev?: number | null;
     WP?: LookupField;
+    Phase?: LookupField;
     "Sub Disciplines"?: LookupField;
     Elements?: LookupField;
     "Design Stage"?: LookupField;
@@ -26,8 +34,8 @@ export interface LabelingProps {
     context: WebPartContext;
     dir: boolean;
     users: any[];
-    selectedLabeling?: any;
-    onSave: (selectedLabeling: string) => void;
+    selectedLabeling?: any; // could be an object or an array of objects
+    onSave: (selectedLabeling: any[]) => void;
     onClose: () => void;
 }
 
@@ -46,95 +54,212 @@ const mapWP: { [key: string]: string } = {
     "Alignment": "AlignmentNew",
     "General": "GeneralNew",
     "(3rd Party)": "3rdPartyNew",
-    "coordination (danon)": "cordinationDanonNew",
-}
+    "cordination (danon)": "cordinationDanonNew",
+};
 
 export function Labeling(props: LabelingProps) {
-    // State management for labeling data    
+    // Data from SharePoint for all lookup/autocomplete fields
     const [designData, setDesignData] = useState({
         Design_WP: [] as any[],
         Design_DesignStage: [] as any[],
         Elements: [] as any[],
         DesignDisciplinesSubDisciplines: [] as any[],
         Design_DocumentStatus: [] as any[],
+        Phase: [] as any[],
     });
 
-    const [selectedObject, setSelectedObject] = useState<any>(props.selectedLabeling || {});
+    // ROW STATE: Each row (i.e. labeling path) holds these fields.
+    // Now each field will store a single object (or null), not an array.
+    const [labelingArr, setLabelingArr] = useState<any[]>(() => {
 
-    // Fetch labeling data on mount
+        if (props.selectedLabeling) {
+
+            return Array.isArray(props.selectedLabeling)
+                ? props.selectedLabeling
+                : [props.selectedLabeling];
+        }
+        return [
+            {
+                id: 1,
+                WP: null,
+                Phase: null,
+                "Design Stage": null,
+                Elements: null,
+                "Sub Disciplines": null,
+            },
+        ];
+    });
+
+    // COMMON (STATIC) DATA across all rows
+    const [commonData, setCommonData] = useState<any>(() => {
+        if (props.selectedLabeling) {
+            const first = Array.isArray(props.selectedLabeling)
+                ? props.selectedLabeling[0]
+                : props.selectedLabeling;
+            return {
+                Rev: first.Rev ?? 0,
+                "Document Status": first["Document Status"] ?? null,
+                AuthorDesingerName: first.AuthorDesingerName ?? null,
+            };
+        }
+        return {
+            Rev: 0,
+            "Document Status": null,
+            AuthorDesingerName: null,
+        };
+    });
+
+    // Fetch lookup data on mount
     useEffect(() => {
         getLabelingData();
     }, []);
 
-    useEffect(() => {
-        if (props.selectedLabeling !== undefined) {
-            setSelectedObject((prev: any) => ({
-                ...prev,
-                WP: props.selectedLabeling?.WP ?? null,
-                "Sub Disciplines": props.selectedLabeling?.["Sub Disciplines"] ?? null,
-                Elements: props.selectedLabeling?.Elements ?? null,
-                "Design Stage": props.selectedLabeling?.["Design Stage"] ?? null,
-                "Document Status": props.selectedLabeling?.["Document Status"] ?? null,
-            }));
-        }
-    }, [props.selectedLabeling]);
-
     const getLabelingData = async () => {
-
+        const SIZE = 5000
         try {
-            const [wp, designStage, elements, disciplines, designDocumentStatus, designType] = await Promise.all([
-                props.sp.web.lists.getByTitle('Design_WP').items.select('Title, Id').top(5000)(),
-                props.sp.web.lists.getByTitle('Design_DesignStage').items.top(5000)(),
-                props.sp.web.lists.getByTitle('Elements').items.top(5000)(),
-                props.sp.web.lists.getByTitle('DesignDisciplinesSubDisciplines').items.top(5000)(),
-                props.sp.web.lists.getByTitle('Design_DocumentStatus').items.top(5000)(),
-                props.sp.web.lists.getByTitle('Design_TYPE').items.top(5000)()
+            const [wp, designStage, elements, disciplines, designDocumentStatus, designType, designPhase] = await Promise.all([
+                props.sp.web.lists.getByTitle('Design_WP').items.select('Title, Id').top(SIZE)(),
+                props.sp.web.lists.getByTitle('Design_DesignStage').items.select('Title, Id, WP_Type, Phase').top(SIZE)(),
+                props.sp.web.lists.getByTitle('Elements').items.select('Title, Id, WP, Location, elementCode, elementName, elementType, ElementNameAndCode').top(SIZE)(),
+                props.sp.web.lists.getByTitle('DesignDisciplinesSubDisciplines').items.select('Title, Id, Discipline, DisciplineValue, SubDiscipline').top(SIZE)(),
+                props.sp.web.lists.getByTitle('Design_DocumentStatus').items.select('Title, Id').top(SIZE)(),
+                props.sp.web.lists.getByTitle('Design_TYPE').items.select('Title, Id').top(SIZE)(),
+                props.sp.web.lists.getByTitle('Design_Phase').items.select('Title, Id, WP_Type').top(SIZE)()
             ]);
 
-            // Update state with fetched data
-            setDesignData({
-                Design_WP: wp,
-                Design_DesignStage: designStage,
-                Elements: elements,
-                DesignDisciplinesSubDisciplines: disciplines,
-                Design_DocumentStatus: designDocumentStatus,
-            });
+            const filterDuplicats = (arr: any[], name: string = 'Title') => arr.filter((item, index, self) => index === self.findIndex((t) => t[name] === item[name]))
 
+            setDesignData({
+                Design_WP: filterDuplicats(wp).filter(wp => !['(3rd Party)', 'cordination (danon)'].includes(wp.Title)),
+                Design_DesignStage: filterDuplicats(designStage),
+                Elements: filterDuplicats(elements, 'ElementNameAndCode'),
+                DesignDisciplinesSubDisciplines: filterDuplicats(disciplines, 'SubDiscipline'),
+                Design_DocumentStatus: filterDuplicats(designDocumentStatus),
+                Phase: filterDuplicats(designPhase),
+            });
         } catch (error) {
             console.error('Error fetching labeling data:', error);
         }
     };
 
-    function AutoCompleteLabeling(
-        options: any[],
-        label: string, // Ensure it matches selectedObject keys
-        valueField: any,
-        required?: boolean,
-        multiple?: boolean
-    ) {
+    // Add a new empty row to labelingArr.
+    function addRow() {
+        setLabelingArr((prevState: any[]) => [
+            ...prevState,
+            {
+                id: prevState.length + 1,
+                WP: null,
+                Phase: null,
+                "Design Stage": null,
+                Elements: null,
+                "Sub Disciplines": null,
+            },
+        ]);
+    }
 
-        
+    function deleteRow(rowIndex: any): void {
+        if (labelingArr.length === 1) return
+
+        const filteredRows = labelingArr.filter(row => rowIndex !== row.id)
+
+        const reformattedRows = filteredRows.map((row, index) => ({
+            ...row,
+            id: index + 1
+        }))
+
+        setLabelingArr(reformattedRows)
+    }
+
+    // ROW-LEVEL AUTOCOMPLETE: each row’s value comes from labelingArr[rowIndex].
+    // Here, multiple selection is disabled by setting multiple to false.
+    function AutoCompleteLabeling(
+        rowIndex: number,
+        options: any[],
+        label: string, // e.g., 'WP', 'Phase', etc.
+        valueField: string,
+        required?: boolean,
+        multiple: boolean = false
+    ) {
+        return (
+            <div style={{ width: '100%' }}>
+                <span style={{ fontFamily: 'sans-serif', paddingLeft: '0.3em', color: 'rgba(0, 0, 0, 0.6)', fontSize: '12px' }}>{label}</span>
+                <Autocomplete
+                    multiple={multiple}
+                    fullWidth
+                    size="small"
+                    options={options}
+                    getOptionLabel={(option) => option[valueField] || ""}
+                    value={labelingArr[rowIndex][label] ? labelingArr[rowIndex][label] : null}
+                    onChange={(event, newValue) => autoCompleteHandlerForRow(rowIndex, event, newValue, label, multiple)}
+                    renderOption={(props, option) => (
+                        <li {...props} key={option.id || option[valueField]}>
+                            {option[valueField]}
+                        </li>
+                    )}
+                    renderInput={(params) => (
+                        <TextField {...params} variant="outlined" required={required} />
+                    )}
+                />
+            </div>
+        );
+    }
+
+    // When a field changes in a row, update that row’s data.
+    function autoCompleteHandlerForRow(
+        rowIndex: number,
+        event: React.SyntheticEvent,
+        newValue: any,
+        label: string,
+        multiple: boolean
+    ) {
+        setLabelingArr((prev) =>
+            prev.map((row, index) => {
+                // Only update the row that changed
+                if (index !== rowIndex) return row;
+
+                // If the WP field is changing and is different, reset related fields
+                if (label === 'WP' && row.WP !== newValue) {
+                    return {
+                        ...row,
+                        WP: newValue,
+                        Phase: null,
+                        "Design Stage": null,
+                        Elements: null,
+                        "Sub Disciplines": null,
+                    };
+                }
+
+                // Otherwise, update only the specific field
+                return {
+                    ...row,
+                    [label]: newValue,
+                };
+            })
+        );
+    }
+
+
+    // COMMON FIELDS AUTOCOMPLETE (for static fields like Document Status)
+    function AutoCompleteCommon(
+        options: any[],
+        label: string,
+        valueField: string,
+        required?: boolean,
+        multiple: boolean = false
+    ) {
         return (
             <Autocomplete
-               multiple={multiple}
+                multiple={multiple}
                 fullWidth
                 size="small"
                 options={options}
                 getOptionLabel={(option) => option[valueField] || ""}
-
-                value={
-                    selectedObject[label]
-                      ? selectedObject[label]
-                      : 
-                      multiple === true
-                      ? []
-                      : null
-                  }
-                     onChange={(event, newValue) =>   
-                    setSelectedObject((prev: any) => ({
+                value={commonData[label] ? commonData[label] : null}
+                onChange={(event, newValue) =>
+                    setCommonData((prev: any) => ({
                         ...prev,
-                        [label]: newValue || undefined, // Ensure it updates correctly
-                    }))                   
+                        [label]: newValue,
+                    }))
                 }
                 renderInput={(params) => (
                     <TextField {...params} label={label} variant="outlined" required={required} />
@@ -143,28 +268,21 @@ export function Labeling(props: LabelingProps) {
         );
     }
 
-
-    function urlBuilder() {
-        // Raw path segments (do not encode here)
+    // Build a URL for a given row.
+    function buildRowUrl(row: any) {
         const pathSegments = [
-            selectedObject['Design Stage']?.Title,
-            selectedObject.Elements?.ElementNameAndCode,
-            selectedObject['Sub Disciplines']?.SubDiscipline,
-        ].filter(Boolean); // Remove null or undefined segments
-
-        // Join path segments with "/" without double encoding
-        const rawPath = `/sites/METPRODocCenterC/${mapWP[selectedObject.WP?.Title]}/${pathSegments.join('/')}`;
-        const encodedPath = encodeURI(rawPath); // Use encodeURI to encode the full path minimally
-
-        // Base URL
-        const baseUrl = `${props.context.pageContext.web.absoluteUrl}/${mapWP[selectedObject.WP?.Title]}/Forms/AllItems.aspx`;
-
-        // Construct the full URL with encoded query parameter
+            row['Design Stage']?.Title,
+            row.Elements?.ElementNameAndCode,
+            row['Sub Disciplines']?.SubDiscipline,
+        ].filter(Boolean);
+        const rawPath = `/sites/METPRODocCenterC/${mapWP[row.WP?.Title]}/${pathSegments.join('/')}`;
+        const encodedPath = encodeURI(rawPath);
+        const baseUrl = `${props.context.pageContext.web.absoluteUrl}/${mapWP[row.WP?.Title]}/Forms/AllItems.aspx`;
         const url = `${baseUrl}?id=${encodedPath}`;
-
         return url;
     }
 
+    // Build JSON payload for a given row, merging in commonData.
     async function buildJsonPayload(data: InputData) {
         let jsonToSave: Record<string, any> = {
             "__metadata": {
@@ -172,106 +290,185 @@ export function Labeling(props: LabelingProps) {
             }
         };
 
-        // Helper function to add fields only if they are not null, undefined, or empty
         const addField = (key: string, value: any) => {
             if (value !== null && value !== undefined && value !== "") {
                 jsonToSave[key] = value;
             }
         };
 
-        // Ensure Rev is set, default to 0 if null
         addField("Rev", data.Rev !== null && data.Rev !== undefined ? Number(data.Rev) : 0);
 
-        // Lookup fields (ensure Collection(Edm.Int32) format)
         const addLookupField = async (key: string, lookupObject?: any) => {
             if (lookupObject !== undefined && lookupObject !== null) {
-                console.log(lookupObject);
-                console.log(key);
-
-                
                 jsonToSave[key] = {
                     "__metadata": { "type": "Collection(Edm.Int32)" },
-                    "results": lookupObject instanceof Array
-                        ? await Promise.all(lookupObject.map((item: any) => item.Id))
-                        : [ lookupObject.Id ]
+                    "results": [lookupObject.Id]
                 };
             }
         };
-        
-        console.log( data.WP);
-        console.log( data["Sub Disciplines"]);
-        
-         await addLookupField("OData__WPId", data.WP);
-         await addLookupField("subDisciplineId", data["Sub Disciplines"]);
-         await addLookupField("ElementNameAndCodeId", data.Elements);
-         await addLookupField("OData__designStageId", data["Design Stage"]);
-         await addLookupField("OData__DocumentStatusId", data["Document Status"]);
 
-        // String field (only add if not empty)
+        await addLookupField("ElementNameAndCodeId", data.Elements);
+        if (data.WP?.Title && !HAS_NO_ELEMETNS.includes(data.WP?.Title)) {
+        }
+
+        await addLookupField("subDisciplineId", data["Sub Disciplines"]);
+        if (data.WP?.Title && !HAS_NO_SUB_DICIPLINES.includes(data.WP?.Title)) {
+        }
+
+        await addLookupField("OData__WPId", data.WP);
+        await addLookupField("OData__designStageId", data["Design Stage"]);
+        await addLookupField("OData__DocumentStatusId", data["Document Status"]);
+
         addField("DesignerNameId", data.AuthorDesingerName);
-        console.log(jsonToSave);
-        
+
         return jsonToSave;
     }
 
+    // When saving, build an array of objects—one for each row—merging in the common data.
     async function saveToSP() {
-        // Save data to SP here
-        const libraryPath = urlBuilder();
+        const allRowsToSave = await Promise.all(
+            labelingArr.map(async (row) => {
+                const rowInput: InputData = {
+                    documentLibraryNameMapped: mapWP[row.WP?.Title],
+                    Rev: commonData.Rev,
+                    WP: row.WP,
+                    Phase: row.Phase,
+                    "Sub Disciplines": row["Sub Disciplines"] ? row["Sub Disciplines"] : designData.DesignDisciplinesSubDisciplines.find(e => e.Title === 'NR'),
+                    Elements: row.Elements ? row.Elements : designData.Elements.find(e => e.Title === 'NR'),
+                    "Design Stage": row['Design Stage'],
+                    "Document Status": commonData["Document Status"],
+                    AuthorDesingerName: commonData.AuthorDesingerName,
+                };
 
-        const inputDate: InputData = {
-            documentLibraryNameMapped: mapWP[selectedObject.WP[0]?.Title],
-            Rev: selectedObject.Rev,
-            WP: selectedObject.WP,
-            "Sub Disciplines": selectedObject["Sub Disciplines"],
-            Elements: selectedObject?.Elements,
-            "Design Stage": selectedObject['Design Stage'],
-            "Document Status": selectedObject['Document Status'],
-            AuthorDesingerName: selectedObject?.AuthorDesingerName
-        };
+                const jsonPayload = await buildJsonPayload(rowInput);
 
-        const jsonPayload = await buildJsonPayload(inputDate);
-        console.log(selectedObject["Sub Disciplines"][0].SubDiscipline);
-        
+                // Build an array of URL path segments.
+                // If row.Phase exists, use its Title; otherwise, it will be filtered out.
+                const pathSegments = [
+                    row.Phase?.Title,                // Phase (if available)
+                    row['Design Stage']?.Title,      // Design Stage
+                    row.Elements?.ElementNameAndCode,// Elements
+                    row['Sub Disciplines']?.SubDiscipline // Sub Disciplines
+                ].filter(segment => segment && segment.trim() !== '');
 
-        const selectedLabeling = {
-            ...selectedObject,
-            Id: uuidv4(),
-            libraryPath: `${mapWP[selectedObject?.WP[0]?.Title]}/${selectedObject['Design Stage'][0]?.Title}/${selectedObject.Elements[0]?.ElementNameAndCode}/${selectedObject['Sub Disciplines'][0]?.SubDiscipline}`,
-            libraryName: `${selectedObject?.WP[0]?.Title}/${selectedObject['Design Stage'][0]?.Title}/${selectedObject.Elements[0]?.ElementNameAndCode}/${selectedObject['Sub Disciplines'][0]?.SubDiscipline}`,
-            documentLibraryName: selectedObject?.WP.Title,
-            documentLibraryNameMapped: mapWP[selectedObject?.WP.Title],
-            jsonPayload: jsonPayload,
-        }
-        props.onSave(selectedLabeling);
+                // Join the segments with '/'
+                const path = pathSegments.join('/');
+
+                return {
+                    ...row,
+                    id: uuidv4(),
+                    Rev: commonData.Rev,
+                    "Document Status": commonData["Document Status"],
+                    Elements: row.Elements ? row.Elements : designData.Elements.find(e => e.Title === 'NR'),
+                    "Sub Disciplines": row["Sub Disciplines"] ? row["Sub Disciplines"] : designData.DesignDisciplinesSubDisciplines.find(e => e.Title === 'NR'),
+                    AuthorDesingerName: commonData.AuthorDesingerName,
+                    libraryPath: `${mapWP[row.WP?.Title]}/${path}`,
+                    libraryName: `${row.WP?.Title}/${path}`,
+                    documentLibraryName: row.WP?.Title,
+                    documentLibraryNameMapped: mapWP[row.WP?.Title],
+                    jsonPayload: jsonPayload,
+                };
+            })
+        );
+
+        props.onSave(allRowsToSave);
         props.onClose();
     }
 
-    function handleRevChange(event: any, name: string) {
-        // only values from 1-10
-        if (event.target.value > 10) {
-            event.target.value = 10;
-        } else if (event.target.value < 1) {
-            event.target.value = 1;
+    // Handle changes to the Rev value (common field)
+    function handleRevChange(event: any) {
+        let value = Number(event.target.value);
+        if (value > 10) {
+            value = 10;
+        } else if (value < 0) {
+            value = 0;
         }
-        setSelectedObject({ ...selectedObject, [name]: event.target.value });
+        setCommonData((prev: any) => ({ ...prev, Rev: value }));
     }
+
+    // Compute whether all rows and common fields are valid.
+    const allRowsValid = labelingArr.every((row) =>
+        row.WP &&
+        row["Design Stage"] &&
+        (HAS_NO_ELEMETNS.includes(row.WP?.Title) ? true : row.Elements) &&
+        (HAS_NO_SUB_DICIPLINES.includes(row.WP?.Title) ? true : row["Sub Disciplines"]) &&
+        (
+            !WP_PHASE_ARRAY.includes(row.WP?.Title) ||
+            (row.Phase)
+        )
+    );
 
     return (
         <>
-        
-            <div className={styles.labelingContainer}>
-        {console.log(selectedObject.WP)}
-                {AutoCompleteLabeling(designData.Design_WP, 'WP', 'Title', true,true)}
-                {AutoCompleteLabeling(designData.Design_DesignStage, 'Design Stage', 'Title', true,true)}
-                {AutoCompleteLabeling(selectedObject.WP ? designData.Elements.filter((element) => element.WP === selectedObject.WP[0]?.Title) : designData.Elements,
-                    'Elements', 'ElementNameAndCode', true,true)}
-                {AutoCompleteLabeling(designData.DesignDisciplinesSubDisciplines, 'Sub Disciplines', 'SubDiscipline', true,true)}
-                <TextField value={selectedObject.Rev !== null && selectedObject.Rev !== undefined ? selectedObject.Rev : 0} type='number' label='Rev' size='small' fullWidth onChange={(event) => handleRevChange(event, 'Rev')}></TextField>
-                {AutoCompleteLabeling(designData.Design_DocumentStatus, 'Document Status', 'Title',false,true)}
+            {/* Repeating labeling rows */}
+            {labelingArr.map((row, index) => {
+
+                return (
+                    <div key={uuidv4()} style={{ display: 'flex' }}>
+
+                        <div key={row.id} className={styles.labelingContainer} style={{ width: '95%' }}>
+                            {/* WP */}
+                            {AutoCompleteLabeling(index, designData.Design_WP, 'WP', 'Title', true, false)}
+                            {/* Phase */}
+                            {AutoCompleteLabeling(
+                                index,
+                                row.WP
+                                    ? designData.Phase.filter((phase) =>
+                                        (row.WP.Title.startsWith('Wp')
+                                            || WP_PHASE_ARRAY.includes(row.WP.Title)) ? phase.WP_Type === 'ALL-WP' : phase.WP_Type === 'General')
+                                    : [],
+                                'Phase', 'Title', true, false)}
+                            {/* Design Stage */}
+                            {AutoCompleteLabeling(
+                                index,
+                                row.WP && row.Phase
+                                    ? designData.Design_DesignStage.filter((ds) =>
+                                        (row.WP.Title.startsWith('Wp')
+                                            || WP_PHASE_ARRAY.includes(row.WP.Title)) ? ds.WP_Type === 'ALL-WP' : ds.WP_Type === 'General' && ds.Phase.includes(row.Phase.Title))
+                                    : [],
+                                'Design Stage', 'Title', true, false)}
+                            {/* Elements */}
+                            {!HAS_NO_ELEMETNS.includes(row.WP?.Title) &&
+                                AutoCompleteLabeling(
+                                    index,
+                                    row.WP && row.Phase && row["Design Stage"]
+                                        ? designData.Elements.filter((element) => element.WP === row.WP?.Title)
+                                        : [],
+                                    'Elements',
+                                    'ElementNameAndCode',
+                                    true,
+                                    false
+                                )}
+                            {/* Sub Disciplines */}
+                            {!HAS_NO_SUB_DICIPLINES.includes(row.WP?.Title) && AutoCompleteLabeling(index, designData.DesignDisciplinesSubDisciplines, 'Sub Disciplines', 'SubDiscipline', true, false)}
+                        </div>
+                        <IconButton disabled={labelingArr.length === 1} size="small" sx={{ display: "flex", justifyContent: "center", width: '5%' }} onClick={() => deleteRow(index + 1)}>
+                            <DeleteIcon />
+                        </IconButton>
+                    </div>
+                );
+            })}
+
+            {/*Add new row button*/}
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '1em' }}>
+                <Fab size="small" aria-label="add" color='success' sx={{ backgroundColor: '#8AC693' }} onClick={addRow}>
+                    <AddIcon htmlColor="white" />
+                </Fab>
+            </div>
+
+            {/* Static / Common Fields */}
+            <div className={styles.staticContainer}>
+                <TextField
+                    value={commonData.Rev !== null && commonData.Rev !== undefined ? commonData.Rev : 0}
+                    type='number'
+                    label='Rev'
+                    size='small'
+                    fullWidth
+                    onChange={handleRevChange}
+                />
+                {AutoCompleteCommon(designData.Design_DocumentStatus, 'Document Status', 'Title', false, false)}
                 <UnifiedNameAutocomplete
-                    value={
-                        props.users.filter((user) => user.Id === selectedObject.AuthorDesingerName)[0]?.Title ?? ''
-                    }
+                    value={props.users.filter((user) => user.Id === commonData.AuthorDesingerName)[0]?.Title ?? ''}
                     size="small"
                     context={props.context}
                     users={props.users.filter((u: any) => u?.Email)}
@@ -279,21 +476,21 @@ export function Labeling(props: LabelingProps) {
                     label="Author/Designer Name"
                     onChange={(idOrValue, newValue, email) => {
                         const selectedUser = props.users.find((user) => user.Title === newValue);
-                        setSelectedObject((prev: any) => ({
+                        setCommonData((prev: any) => ({
                             ...prev,
                             AuthorDesingerName: selectedUser ? selectedUser.Id : null, // Store the ID instead of the name
                         }));
                     }}
                 />
-
             </div>
+
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem', gap: '1rem' }}>
                 <Button
-                    disabled={!selectedObject.WP || !selectedObject['Design Stage'] || !selectedObject.Elements || !selectedObject['Sub Disciplines']}
+                    disabled={!allRowsValid}
                     style={{ textTransform: 'capitalize' }}
                     size='small'
                     variant='contained'
-                    onClick={() => saveToSP()}
+                    onClick={saveToSP}
                 >
                     {props.dir ? 'שמור' : 'Save'}
                 </Button>
@@ -302,7 +499,7 @@ export function Labeling(props: LabelingProps) {
                     size='small'
                     variant='contained'
                     color='error'
-                    onClick={() => props.onClose()}
+                    onClick={props.onClose}
                 >
                     {props.dir ? 'בטל' : 'Cancel'}
                 </Button>

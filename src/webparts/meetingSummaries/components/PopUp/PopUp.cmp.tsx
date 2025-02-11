@@ -8,13 +8,14 @@ interface PopUpProps {
     title?: string; // Optional title for the dialog
     children: React.ReactNode; // Generic children to render inside the dialog
     actions?: React.ReactNode; // Optional actions for the dialog footer
+    maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
     dir?: string
 }
 
-export default function PopUp({ open, onClose, title, children, actions, dir }: PopUpProps) {
+export default function PopUp({ open, onClose, title, children, actions, maxWidth = 'md', dir }: PopUpProps) {
     return (
         <div className={styles.popUpContainer}>
-            <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth dir={dir}>
+            <Dialog open={open} onClose={onClose} maxWidth={maxWidth} fullWidth dir={dir}>
                 {title && <DialogTitle>{title}</DialogTitle>}
                 <DialogContent>{children}</DialogContent>
                 {actions && <DialogActions>{actions}</DialogActions>}

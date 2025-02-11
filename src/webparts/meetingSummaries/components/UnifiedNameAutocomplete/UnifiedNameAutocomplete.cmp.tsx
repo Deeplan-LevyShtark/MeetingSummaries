@@ -64,7 +64,6 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
         }
     }, [value]);
 
-
     const handleBlur = () => {
 
         if (Array.isArray(localInputValue)) {
@@ -80,6 +79,7 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
             onChange(params?.id ?? localInputValue, localInputValue, filterdEmails, true, ids, 'onBlur');
         }
         else if (localInputValue?.trim() !== "" && (label === 'Name' || label !== 'ForInfo')) {
+            if (label === 'Author/Designer Name') return
             const updatedValue = [...(internalValue as string[]), localInputValue];
             setInternalValue(updatedValue);
             const filterdEmails = users.filter((u) => (updatedValue as string[]).includes(u.Title)).map((u) => u.Email);
@@ -149,7 +149,6 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
 
     return (
         <div style={{ width: '100%' }}>
-
 
             <Autocomplete
                 size={size}
@@ -253,6 +252,7 @@ export const UnifiedNameAutocomplete: React.FC<UnifiedNameAutocompleteProps> = (
                 )}
                 fullWidth
             />
+
             {taskErrorIndices.length !== 0 && taskErrorIndices.includes(row) && (
                 <div style={{ padding: '0.5rem', fontSize: '0.8rem', color: 'red' }}>
                     <span>{currDir ? 'נדרש אחראי מלוי שטארק' : 'Require LSZ responsible'}</span>

@@ -181,11 +181,8 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
   }
 
   libraryPathHandle = (selectedLabeling: any): void => {
-    console.log(selectedLabeling);
-
-    this.setState({ libraryPath: selectedLabeling?.libraryPath, libraryName: selectedLabeling?.libraryName, selectedLabeling: selectedLabeling }, () => {
-
-      this.handleErrorRequire(selectedLabeling?.libraryPath, 'libraryPath')
+    this.setState({ libraryPath: selectedLabeling[0]?.libraryPath, libraryName: selectedLabeling[0]?.libraryName, selectedLabeling: selectedLabeling }, () => {
+      this.handleErrorRequire(selectedLabeling[0]?.libraryPath, 'libraryPath')
     })
   }
 
@@ -196,6 +193,34 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
   closeAddNewContactPopUp = async (): Promise<void> => {
     const externalUsers = await this.props.sp.web.lists.getById(this.props.ExternalUsersOptions).items()
     this.setState({ addNewContactPopUp: false, users: [...this.state.users, ...externalUsers] })
+  }
+
+  // Validation for errors
+  validationsError = (): void => {
+    const t = this.state.currDir ? require('../../../locales/he/common.json') : require('../../../locales/en/common.json')
+    const errors: { [key: string]: string | [] } = {};
+
+    const tasks = this.state.tasks;
+
+    const newErrors = { ...errors }; // Create a copy to modify
+
+    tasks.forEach((task: any, index: number) => {
+      if (Array.isArray(task.name)) { // Ensure task.name is an array
+        const validTasks = task.name.some((name: string) =>
+          this.state.users.some(user => user.Email.includes("lsz") && user.Title === name)
+        );
+
+        if (!validTasks && task.name.length !== 0) {
+          newErrors[`tasks[${index}].name`] = t.required;
+        } else {
+          if (newErrors.hasOwnProperty(`tasks[${index}].name`)) {
+            delete newErrors[`tasks[${index}].name`]; // Now properly removes the key
+          }
+        }
+      }
+    });
+
+    this.setState({ errors: newErrors });
   }
 
   // Validation for the entire form
@@ -293,6 +318,28 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
       : null;
   }
 
+  saveToLabelingPathsList = async () => {
+
+    const { selectedLabeling, MeetingSummary } = this.state
+
+    const paths = selectedLabeling.map((item: any) => ({
+      url: item.libraryPath
+    }))
+
+    const payloads = selectedLabeling.map((item: any) => ({
+      payloads: item.jsonPayload
+    }))
+
+    await this.props.sp.web.lists.getByTitle('labelingPaths').items.add({
+      Title: MeetingSummary,
+      paths: paths,
+      fileName: MeetingSummary,
+      url: selectedLabeling[0]?.libraryPath,
+      labelingArr: selectedLabeling,
+      payloads: payloads
+    })
+  }
+
   submitForm = async (submitType: string) => {
     const { users, currDir, companies, DateOfMeeting, MeetingSummary, libraryPath, libraryName, attendees, absents, meetingContent, tasks, selectedUsers, selectedUsersFreeSolo, currUser } = this.state
 
@@ -356,6 +403,69 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
         .map(name => this.state.users.find(user => user.Title?.trim().toLowerCase() === name?.trim().toLowerCase())?.Email)
         .filter(Boolean).join(', '); // Remove undefined emails      
 
+      const labeling = this.state.selectedLabeling.reduce((acc: any, currentItem: any) => {
+        // Get the jsonPayload from the current element
+        const payload = currentItem.jsonPayload;
+
+        // Loop through each property in jsonPayload
+        Object.keys(payload).forEach(key => {
+          // Check if this field is a lookup field (it has a "results" array)
+          if (payload[key] && Array.isArray(payload[key].results)) {
+            // If this lookup field hasn’t been added to the accumulator yet, add it.
+            if (!acc[key]) {
+              // Use a shallow copy of the payload field including its metadata.
+              acc[key] = {
+                ...payload[key],
+                results: [...payload[key].results]
+              };
+            } else {
+              // Otherwise, merge the results arrays.
+              // Here we combine the arrays and remove duplicates using a Set.
+              acc[key].results = [...new Set([...acc[key].results, ...payload[key].results])];
+            }
+          }
+          // If you need to handle other (non lookup) fields, add logic here.
+        });
+
+        return acc;
+      }, {});
+
+      const paths = this.state.selectedLabeling
+        .slice(1)  // Excludes the first element
+        .map((item: any) => ({
+          url: item.libraryPath
+        }));
+
+      // First, create a new payload object with the merged lookup fields.
+      const updatedPayload = {
+        ...this.state.selectedLabeling[0].jsonPayload,
+        ElementNameAndCodeId: labeling.ElementNameAndCodeId,
+        OData__WPId: labeling.OData__WPId,
+        OData__designStageId: labeling.OData__designStageId,
+        subDisciplineId: labeling.subDisciplineId,
+      };
+
+      // Remove any existing paths property to avoid a circular reference.
+      const payloadForPaths = { ...updatedPayload };
+      delete payloadForPaths.paths;
+
+      const { __metadata, ...payloadWithoutMetadata } = updatedPayload;
+
+      // Now, add a new property "paths" that is a JSON string of the payload
+      // You can also mix in additional data (like your `paths` variable) if desired.
+      updatedPayload.paths = JSON.stringify({
+        ...payloadForPaths,
+        // Optionally include extra path info (if you have such a variable):
+        extraPaths: paths,
+        extraPayload: payloadWithoutMetadata
+      });
+
+      // Finally, build the final object
+      const finalLabeling = {
+        ...this.state.selectedLabeling[0],
+        jsonPayload: updatedPayload
+      };
+
       try {
         await this.props.sp.web.lists.getById(this.props.MeetingSummariesListId).items.add({
           DateOfMeeting: moment(DateOfMeeting),
@@ -373,7 +483,8 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
           submit: submitType,
           Summarizing: currUser?.Title,
           Copy: [...this.state.selectedUsers, ...this.state.selectedUsersFreeSolo].flat().join(', '),
-          selectedLabeling: JSON.stringify(this.state.selectedLabeling),
+          selectedLabeling: JSON.stringify(finalLabeling),
+          selectedLabelingAll: JSON.stringify(this.state.selectedLabeling),
           sendMailToAll: uniqueEmails
         }).then(async (item) => {
           itemId = item.Id
@@ -396,8 +507,6 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
         await confirmSaveAndSend({
           currDir,
           onConfirm: async () => {
-
-
             for (const task of reformattedTasks) {
               const AssignedToExternal: string[] = [];
               const RemovedIds: number[] = [];
@@ -429,13 +538,6 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
                   return !match;
                 });
               }
-
-
-
-
-
-
-
 
               try {
                 const filteredAssignToExternal = users.filter(user =>
@@ -536,7 +638,7 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
       if (onBlur !== 'onBlur' && fieldName === "forInfo") {
         updatedArray[rowIndex] = { ...updatedArray[rowIndex], forInfoIds: e.target.forInfoIds ? [...e.target.forInfoIds] : [] }
       }
-
+      this.validationsError()
       return { [dataArrayName]: updatedArray, selectedUsers: Array.from(combinedSelectedUsers) };
     });
   }
@@ -843,10 +945,10 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
                       </IconButton>
                     </div>
 
-                    <PopUp open={this.state.folderPopUp} onClose={() => { this.closeFolderPopUp() }} title={t["Choose where to file the meeting summary"]} actions={null} dir={currDir ? 'rtl' : 'ltr'}>
+                    <PopUp open={this.state.folderPopUp} onClose={() => { this.closeFolderPopUp() }} title={t["Choose where to file the meeting summary"]} actions={null} maxWidth='xl' dir={currDir ? 'rtl' : 'ltr'}>
                       <Labeling selectedLabeling={this.state.selectedLabeling} sp={this.props.sp} context={this.props.context} dir={currDir} users={users} onSave={this.libraryPathHandle} onClose={this.closeFolderPopUp}></Labeling>
                     </PopUp>
-                    {console.log(libraryName)}
+
                     <div style={{ display: 'flex', gap: '1em', alignItems: 'center' }}>
                       <span>{t["File location"]}: </span>
                       {libraryName !== '' ?

@@ -15,16 +15,19 @@ export function NewContact(props: INewContactProps) {
     const [fullName, setFullName] = React.useState<string>("");
     const [email, setEmail] = React.useState<string>("");
     const [Options, setOptions] = React.useState<Array<string>>([]);
-    const [company, setcompany] = React.useState<string>("");
+    const [users, setUsers] = React.useState<any>([]);
+    const [company, setCompany] = React.useState<string>("");
 
     const [saving, setSaving] = React.useState<boolean>(false); // Track loading state
 
     React.useEffect(() => {
         async function fetchCompanies() {
             try {
-                const items = await props.sp.web.lists.getByTitle("Companies").items();
-                const titles = items.map((item: any) => item.Title);
+                const users = await props.sp.web.lists.getByTitle("External Users Options").select('Title, Email').items();
+                const companies = await props.sp.web.lists.getByTitle("Companies").items();
+                const titles = companies.map((item: any) => item.Title);
                 setOptions(titles);
+                setUsers(users)
             } catch (error) {
                 console.error("Error fetching companies:", error);
             }
@@ -50,17 +53,51 @@ export function NewContact(props: INewContactProps) {
         setSaving(true); // Start loading state
 
         try {
-            await props.sp.web.lists
-                .getByTitle("External Users Options") // Ensure list exists
-                .items.add({
-                    Title: fullName, // Save Name
-                    Email: email, // Save Email
-                    Company: company
+            // Check if the user already exists
+            const existingUser = users.find((user: any) => user.Email === email);
+            // Check if the company already exists
+            const existingCompany = Options.find((c: any) => c === company);
 
-                });
+            let message = "";
 
-            alert(props.dir ? "איש קשר נשמר בהצלחה" : "Contact saved successfully!");
-            props.onClose(); // Close after saving
+            // Add user only if it does not exist
+            if (existingUser) {
+                message += props.dir
+                    ? "האימייל כבר קיים במערכת. "
+                    : "The email already exists in the system. ";
+            }
+
+            // Add company only if it does not exist
+            if (existingCompany) {
+                message += props.dir
+                    ? "החברה כבר קיימת במערכת. "
+                    : "The company already exists in the system. ";
+            }
+
+            // Execute all required actions in parallel
+            if (existingCompany || existingUser) {
+                alert(message);
+            }
+
+            if (!existingCompany && !existingUser) {
+                await Promise.all([
+                    props.sp.web.lists
+                        .getByTitle("External Users Options")
+                        .items.add({
+                            Title: fullName, // Save Name
+                            Email: email, // Save Email
+                            Company: company
+                        }),
+                    props.sp.web.lists
+                        .getByTitle("Companies")
+                        .items.add({
+                            Title: company
+                        })
+                ]);
+                alert(props.dir ? "איש קשר נשמר בהצלחה!" : "Contact saved successfully!");
+                props.onClose(); // Close after saving
+            }
+
         } catch (error) {
             console.error("Error saving contact:", error);
             alert(props.dir ? "שמירת איש הקשר נכשלה" : "Failed to save contact.");
@@ -83,15 +120,18 @@ export function NewContact(props: INewContactProps) {
                     required
                 />
                 <Autocomplete
+                    freeSolo={true}
                     fullWidth
                     size="small"
                     options={Options}
                     //getOptionLabel={(option) => || ""}
                     value={company || null} // Controlled value
                     onChange={(event, newValue: any) =>
-                        setcompany(newValue)
-
+                        setCompany(newValue)
                     }
+                    onInputChange={(event, newValue: any) => {
+                        setCompany(newValue)
+                    }}
                     renderInput={(params) => (
                         <TextField {...params} label={props.dir ? "חברה" : "Company"} variant="outlined" />
                     )}
