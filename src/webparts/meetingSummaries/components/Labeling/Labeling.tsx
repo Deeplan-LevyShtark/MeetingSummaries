@@ -20,6 +20,7 @@ interface LookupField {
 interface InputData {
     documentLibraryNameMapped: string;
     Rev?: number | null;
+    RevisionNo?: number | null;
     WP?: LookupField;
     Phase?: LookupField;
     "Sub Disciplines"?: LookupField;
@@ -27,6 +28,8 @@ interface InputData {
     "Design Stage"?: LookupField;
     "Document Status"?: LookupField;
     AuthorDesingerName?: string | null;
+    Authority?: string | null
+    _designType?: string | null
 }
 
 export interface LabelingProps {
@@ -65,6 +68,7 @@ export function Labeling(props: LabelingProps) {
         Elements: [] as any[],
         DesignDisciplinesSubDisciplines: [] as any[],
         Design_DocumentStatus: [] as any[],
+        Design_Type: [] as any[],
         Phase: [] as any[],
     });
 
@@ -100,12 +104,16 @@ export function Labeling(props: LabelingProps) {
                 Rev: first.Rev ?? 0,
                 "Document Status": first["Document Status"] ?? null,
                 AuthorDesingerName: first.AuthorDesingerName ?? null,
+                RevisionNo: first.RevisionNo ?? 0,
+                Authority: first.Authority ?? null
             };
         }
         return {
             Rev: 0,
             "Document Status": null,
             AuthorDesingerName: null,
+            RevisionNo: 0,
+            Authority: null
         };
     });
 
@@ -135,6 +143,7 @@ export function Labeling(props: LabelingProps) {
                 Elements: filterDuplicats(elements, 'ElementNameAndCode'),
                 DesignDisciplinesSubDisciplines: filterDuplicats(disciplines, 'SubDiscipline'),
                 Design_DocumentStatus: filterDuplicats(designDocumentStatus),
+                Design_Type: filterDuplicats(designType).map(item => item.Title),
                 Phase: filterDuplicats(designPhase),
             });
         } catch (error) {
@@ -297,6 +306,8 @@ export function Labeling(props: LabelingProps) {
         };
 
         addField("Rev", data.Rev !== null && data.Rev !== undefined ? Number(data.Rev) : 0);
+        addField("RevisionNo", data.RevisionNo !== null && data.Rev !== undefined ? Number(data.RevisionNo) : 0);
+        addField("Authority", data.Authority)
 
         const addLookupField = async (key: string, lookupObject?: any) => {
             if (lookupObject !== undefined && lookupObject !== null) {
@@ -308,13 +319,7 @@ export function Labeling(props: LabelingProps) {
         };
 
         await addLookupField("ElementNameAndCodeId", data.Elements);
-        if (data.WP?.Title && !HAS_NO_ELEMETNS.includes(data.WP?.Title)) {
-        }
-
         await addLookupField("subDisciplineId", data["Sub Disciplines"]);
-        if (data.WP?.Title && !HAS_NO_SUB_DICIPLINES.includes(data.WP?.Title)) {
-        }
-
         await addLookupField("OData__WPId", data.WP);
         await addLookupField("OData__designStageId", data["Design Stage"]);
         await addLookupField("OData__DocumentStatusId", data["Document Status"]);
@@ -331,6 +336,8 @@ export function Labeling(props: LabelingProps) {
                 const rowInput: InputData = {
                     documentLibraryNameMapped: mapWP[row.WP?.Title],
                     Rev: commonData.Rev,
+                    RevisionNo: commonData.RevisionNo,
+                    Authority: commonData.Authority,
                     WP: row.WP,
                     Phase: row.Phase,
                     "Sub Disciplines": row["Sub Disciplines"] ? row["Sub Disciplines"] : designData.DesignDisciplinesSubDisciplines.find(e => e.Title === 'NR'),
@@ -358,6 +365,9 @@ export function Labeling(props: LabelingProps) {
                     ...row,
                     id: uuidv4(),
                     Rev: commonData.Rev,
+                    RevisionNo: commonData.RevisionNo,
+                    Authority: commonData.Authority,
+                    _designType: commonData._designType,
                     "Document Status": commonData["Document Status"],
                     Elements: row.Elements ? row.Elements : designData.Elements.find(e => e.Title === 'NR'),
                     "Sub Disciplines": row["Sub Disciplines"] ? row["Sub Disciplines"] : designData.DesignDisciplinesSubDisciplines.find(e => e.Title === 'NR'),
@@ -376,14 +386,14 @@ export function Labeling(props: LabelingProps) {
     }
 
     // Handle changes to the Rev value (common field)
-    function handleRevChange(event: any) {
+    function handleRevChange(event: any, label: string) {
         let value = Number(event.target.value);
         if (value > 10) {
             value = 10;
         } else if (value < 0) {
             value = 0;
         }
-        setCommonData((prev: any) => ({ ...prev, Rev: value }));
+        setCommonData((prev: any) => ({ ...prev, [label]: value }));
     }
 
     // Compute whether all rows and common fields are valid.
@@ -458,15 +468,41 @@ export function Labeling(props: LabelingProps) {
 
             {/* Static / Common Fields */}
             <div className={styles.staticContainer}>
+                {/* Rev */}
                 <TextField
                     value={commonData.Rev !== null && commonData.Rev !== undefined ? commonData.Rev : 0}
                     type='number'
                     label='Rev'
                     size='small'
                     fullWidth
-                    onChange={handleRevChange}
+                    onChange={(event) => handleRevChange(event, 'Rev')}
                 />
+                {/* Authority */}
+                <TextField
+                    value={commonData.Authority || ''}
+                    type='text'
+                    label='Authority'
+                    size='small'
+                    fullWidth
+                    onChange={(event) => {
+                        setCommonData((prev: any) => ({
+                            ...prev,
+                            Authority: event.target.value
+                        }));
+                    }}
+                />
+                {/* Document  Status */}
                 {AutoCompleteCommon(designData.Design_DocumentStatus, 'Document Status', 'Title', false, false)}
+                {/* Revision */}
+                <TextField
+                    value={commonData.RevisionNo !== null && commonData.RevisionNo !== undefined ? commonData.RevisionNo : 0}
+                    type='number'
+                    label='Revision'
+                    size='small'
+                    fullWidth
+                    onChange={(event) => handleRevChange(event, 'RevisionNo')}
+                />
+                {/* Author/Designer Name */}
                 <UnifiedNameAutocomplete
                     value={props.users.filter((user) => user.Id === commonData.AuthorDesingerName)[0]?.Title ?? ''}
                     size="small"
