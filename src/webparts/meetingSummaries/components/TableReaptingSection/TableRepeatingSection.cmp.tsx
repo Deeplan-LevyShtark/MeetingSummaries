@@ -358,22 +358,24 @@ const TableRepeatingSection = memo(function TableRepeatingSection({
                     }}
                     placeholder={!currDir ? "Enter description..." : 'הכנס תיאור'}
                 />
-                <button
-                    onClick={() => handleSavePopup(currentRichTextValue)}
-                    style={{
-                        marginTop: '10px',
-                        padding: '5px 10px',
-                        fontSize: '14px',
-                        backgroundColor: '#1976d2',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        direction: !currDir ? 'ltr' : 'rtl'
-                    }}
-                >
-                    {!currDir ? 'Save' : 'שמור'}
-                </button>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <button
+                        onClick={() => handleSavePopup(currentRichTextValue)}
+                        style={{
+                            marginTop: '10px',
+                            padding: '5px 10px',
+                            fontSize: '14px',
+                            backgroundColor: '#1976d2',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            direction: !currDir ? 'ltr' : 'rtl'
+                        }}
+                    >
+                        {!currDir ? 'Save' : 'שמור'}
+                    </button>
+                </div>
             </PopUp>
 
 

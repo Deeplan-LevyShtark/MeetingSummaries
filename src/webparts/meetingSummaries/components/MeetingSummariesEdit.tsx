@@ -440,6 +440,13 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                 return acc;
             }, {});
 
+            const phaseArray = this.state.selectedLabeling.reduce((acc: string[], curr: any) => {
+                if (curr.Phase) {
+                    acc.push(curr.Phase);
+                }
+                return acc;
+            }, []);
+
             const paths = this.state.selectedLabeling
                 .slice(1)  // Excludes the first element
                 .map((item: any) => ({
@@ -453,6 +460,7 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                 OData__WPId: labeling.OData__WPId,
                 OData__designStageId: labeling.OData__designStageId,
                 subDisciplineId: labeling.subDisciplineId,
+                Phase: { results: phaseArray }
             };
 
             // Remove any existing paths property to avoid a circular reference.
@@ -675,11 +683,11 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                 ...prevState.absents.map((item: any) => item.name).filter((name: string) => name).flat(),
             ]);
 
-            if (onBlur !== 'onBlur' && fieldName === "name") {
+            if (onBlur === 'onBlur' && fieldName === "name") {
                 updatedArray[rowIndex] = { ...updatedArray[rowIndex], ids: e.target.ids ? [...e.target.ids] : [] }
             }
 
-            if (onBlur !== 'onBlur' && fieldName === "forInfo") {
+            if (onBlur === 'onBlur' && fieldName === "forInfo") {
                 updatedArray[rowIndex] = { ...updatedArray[rowIndex], forInfoIds: e.target.forInfoIds ? [...e.target.forInfoIds] : [] }
             }
             this.validationsError()

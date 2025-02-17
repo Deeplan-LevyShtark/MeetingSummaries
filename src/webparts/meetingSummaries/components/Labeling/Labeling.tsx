@@ -293,6 +293,7 @@ export function Labeling(props: LabelingProps) {
 
     // Build JSON payload for a given row, merging in commonData.
     async function buildJsonPayload(data: InputData) {
+
         let jsonToSave: Record<string, any> = {
             "__metadata": {
                 "type": `SP.Data.${data.documentLibraryNameMapped}Item`
@@ -325,6 +326,7 @@ export function Labeling(props: LabelingProps) {
         await addLookupField("OData__DocumentStatusId", data["Document Status"]);
 
         addField("DesignerNameId", data.AuthorDesingerName);
+        addField('Phase', data.Phase?.Title)
 
         return jsonToSave;
     }
@@ -376,6 +378,7 @@ export function Labeling(props: LabelingProps) {
                     libraryName: `${row.WP?.Title}/${path}`,
                     documentLibraryName: row.WP?.Title,
                     documentLibraryNameMapped: mapWP[row.WP?.Title],
+                    Phase: row.Phase?.Title,
                     jsonPayload: jsonPayload,
                 };
             })
