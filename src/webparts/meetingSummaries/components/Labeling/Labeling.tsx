@@ -8,8 +8,8 @@ import { UnifiedNameAutocomplete } from '../UnifiedNameAutocomplete/UnifiedNameA
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const WP_PHASE_ARRAY = ['Infra 2', 'Alignment', '(3rd Party)', 'cordination (danon)'];
-const HAS_NO_ELEMETNS = ['Infra 2', 'General']
+const WP_PHASE_ARRAY = ['Wp10', 'Alignment', '(3rd Party)', 'Coordination'];
+const HAS_NO_ELEMETNS = ['Wp10', 'General']
 const HAS_NO_SUB_DICIPLINES = ['General', 'Alignment']
 
 interface LookupField {
@@ -53,11 +53,11 @@ const mapWP: { [key: string]: string } = {
     "Wp7": "Wp7new",
     "Wp8": "Wp8new",
     "Wp9": "Wp9new",
-    "Infra 2": "Infra2new",
+    "Wp10": "Infra2new",
     "Alignment": "AlignmentNew",
     "General": "GeneralNew",
     "(3rd Party)": "3rdPartyNew",
-    "cordination (danon)": "cordinationDanonNew",
+    "Coordination": "cordinationDanonNew",
 };
 
 export function Labeling(props: LabelingProps) {
