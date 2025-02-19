@@ -29,7 +29,7 @@ interface InputData {
     "Document Status"?: LookupField;
     AuthorDesingerName?: string | null;
     Authority?: string | null
-    _designType?: string | null
+    OData__designType?: string | null
 }
 
 export interface LabelingProps {
@@ -105,7 +105,8 @@ export function Labeling(props: LabelingProps) {
                 "Document Status": first["Document Status"] ?? null,
                 AuthorDesingerName: first.AuthorDesingerName ?? null,
                 RevisionNo: first.RevisionNo ?? 0,
-                Authority: first.Authority ?? null
+                Authority: first.Authority ?? null,
+                OData__designType: first.OData__designType ?? null
             };
         }
         return {
@@ -113,7 +114,8 @@ export function Labeling(props: LabelingProps) {
             "Document Status": null,
             AuthorDesingerName: null,
             RevisionNo: 0,
-            Authority: null
+            Authority: null,
+            OData__designType: null
         };
     });
 
@@ -143,7 +145,7 @@ export function Labeling(props: LabelingProps) {
                 Elements: filterDuplicats(elements, 'ElementNameAndCode'),
                 DesignDisciplinesSubDisciplines: filterDuplicats(disciplines, 'SubDiscipline'),
                 Design_DocumentStatus: filterDuplicats(designDocumentStatus),
-                Design_Type: filterDuplicats(designType).map(item => item.Title),
+                Design_Type: filterDuplicats(designType),
                 Phase: filterDuplicats(designPhase),
             });
         } catch (error) {
@@ -263,7 +265,13 @@ export function Labeling(props: LabelingProps) {
                 size="small"
                 options={options}
                 getOptionLabel={(option) => option[valueField] || ""}
-                value={commonData[label] ? commonData[label] : null}
+                value={
+                    label === 'OData__designType' && commonData[label]?.results
+                        ? options.find(
+                            (option) => option[valueField] === commonData[label].results[0]
+                        ) || null
+                        : commonData[label] || null
+                }
                 onChange={(event, newValue) =>
                     setCommonData((prev: any) => ({
                         ...prev,
@@ -271,11 +279,17 @@ export function Labeling(props: LabelingProps) {
                     }))
                 }
                 renderInput={(params) => (
-                    <TextField {...params} label={label} variant="outlined" required={required} />
+                    <TextField
+                        {...params}
+                        label={label === 'OData__designType' ? 'Design Type' : label}
+                        variant="outlined"
+                        required={required}
+                    />
                 )}
             />
         );
     }
+
 
     // Build a URL for a given row.
     function buildRowUrl(row: any) {
@@ -309,6 +323,18 @@ export function Labeling(props: LabelingProps) {
         addField("Rev", data.Rev !== null && data.Rev !== undefined ? Number(data.Rev) : 0);
         addField("RevisionNo", data.RevisionNo !== null && data.Rev !== undefined ? Number(data.RevisionNo) : 0);
         addField("Authority", data.Authority)
+        addField("DesignerNameId", data.AuthorDesingerName);
+        addField('Phase', data.Phase?.Title)
+
+        const addChoiseField = (key: string, value: any) => {
+            if (value !== null && value !== undefined && value !== "") {
+                jsonToSave[key] = {
+                    "results": [value?.Title]
+                }
+            }
+        }
+
+        addChoiseField('OData__designType', data.OData__designType)
 
         const addLookupField = async (key: string, lookupObject?: any) => {
             if (lookupObject !== undefined && lookupObject !== null) {
@@ -325,8 +351,7 @@ export function Labeling(props: LabelingProps) {
         await addLookupField("OData__designStageId", data["Design Stage"]);
         await addLookupField("OData__DocumentStatusId", data["Document Status"]);
 
-        addField("DesignerNameId", data.AuthorDesingerName);
-        addField('Phase', data.Phase?.Title)
+
 
         return jsonToSave;
     }
@@ -347,6 +372,7 @@ export function Labeling(props: LabelingProps) {
                     "Design Stage": row['Design Stage'],
                     "Document Status": commonData["Document Status"],
                     AuthorDesingerName: commonData.AuthorDesingerName,
+                    OData__designType: commonData.OData__designType
                 };
 
                 const jsonPayload = await buildJsonPayload(rowInput);
@@ -369,7 +395,7 @@ export function Labeling(props: LabelingProps) {
                     Rev: commonData.Rev,
                     RevisionNo: commonData.RevisionNo,
                     Authority: commonData.Authority,
-                    _designType: commonData._designType,
+                    OData__designType: commonData.OData__designType ? { results: [commonData.OData__designType.Title] } : null,
                     "Document Status": commonData["Document Status"],
                     Elements: row.Elements ? row.Elements : designData.Elements.find(e => e.Title === 'NR'),
                     "Sub Disciplines": row["Sub Disciplines"] ? row["Sub Disciplines"] : designData.DesignDisciplinesSubDisciplines.find(e => e.Title === 'NR'),
@@ -378,7 +404,7 @@ export function Labeling(props: LabelingProps) {
                     libraryName: `${row.WP?.Title}/${path}`,
                     documentLibraryName: row.WP?.Title,
                     documentLibraryNameMapped: mapWP[row.WP?.Title],
-                    Phase: row.Phase?.Title,
+                    Phase: row.Phase ? row.Phase : designData.Phase.find(e => e.Title === 'NR'),
                     jsonPayload: jsonPayload,
                 };
             })
@@ -521,6 +547,8 @@ export function Labeling(props: LabelingProps) {
                         }));
                     }}
                 />
+                {/* Design Type */}
+                {AutoCompleteCommon(designData.Design_Type, 'OData__designType', 'Title', false, false)}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem', gap: '1rem' }}>

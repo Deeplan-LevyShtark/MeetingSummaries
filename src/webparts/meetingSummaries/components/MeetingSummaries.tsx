@@ -432,7 +432,7 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
 
       const phaseArray = this.state.selectedLabeling.reduce((acc: string[], curr: any) => {
         if (curr.Phase) {
-          acc.push(curr.Phase);
+          acc.push(curr.Phase?.Title);
         }
         return acc;
       }, []);
@@ -471,6 +471,7 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
       // Finally, build the final object
       const finalLabeling = {
         ...this.state.selectedLabeling[0],
+        Phase: { results: phaseArray[0] },
         jsonPayload: updatedPayload
       };
 
