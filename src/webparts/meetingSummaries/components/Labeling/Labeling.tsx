@@ -473,14 +473,21 @@ export function Labeling(props: LabelingProps) {
         )
     );
 
-    const filterElements = (row: any): any[] => {
+    const filterElements = (row: any, index: number): any[] => {
         if (!row.WP || !row.Phase || !row["Design Stage"]) return [];
 
-        return designData.Elements.filter(element => {
+        const options = designData.Elements.filter(element => {
             if (row.WP.Title === 'General') return element.WP === 'General' && element.designStage?.trim() === row["Design Stage"].Title?.trim();
 
             return element.WP === row.WP?.Title;
         });
+
+        if (row.WP.Title === 'General' && !options.length) {
+            setNRElement(row, index);
+            return designData.Elements.filter(d => d.ElementNameAndCode === 'NR');
+        }
+
+        return options;
     };
 
     const filterSubDisciplines = (row: any, index: number): any[] => {
@@ -498,6 +505,16 @@ export function Labeling(props: LabelingProps) {
         }
 
         return designData.DesignDisciplinesSubDisciplines;
+    };
+
+    const setNRElement = (row: any, index: number) => {
+        if (row.Elements?.ElementNameAndCode === 'NR') return;
+
+        const nextData = [...labelingArr];
+        const updatedRow = { ...row, Elements: designData.Elements.find(d => d.ElementNameAndCode === 'NR') };
+        nextData[index] = updatedRow;
+        setLabelingArr(nextData);
+        setNRSubDiscipline(updatedRow, index);
     };
 
     const setNRSubDiscipline = (row: any, index: number) => {
@@ -542,7 +559,7 @@ export function Labeling(props: LabelingProps) {
                             {!HAS_NO_ELEMETNS.includes(row.WP?.Title) &&
                                 AutoCompleteLabeling(
                                     index,
-                                    filterElements(row),
+                                    filterElements(row, index),
                                     'Elements',
                                     'ElementNameAndCode',
                                     true,
