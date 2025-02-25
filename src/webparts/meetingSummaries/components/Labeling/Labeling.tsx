@@ -9,8 +9,8 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const WP_PHASE_ARRAY = ['Wp10', 'Alignment', '(3rd Party)', 'Coordination'];
-const HAS_NO_ELEMETNS = ['Wp10', 'General']
-const HAS_NO_SUB_DICIPLINES = ['General', 'Alignment']
+const HAS_NO_ELEMETNS = ['Wp10']
+const HAS_NO_SUB_DICIPLINES = ['Alignment']
 
 interface LookupField {
     Id?: number | null;
@@ -126,12 +126,13 @@ export function Labeling(props: LabelingProps) {
 
     const getLabelingData = async () => {
         const SIZE = 5000
+
         try {
             const [wp, designStage, elements, disciplines, designDocumentStatus, designType, designPhase] = await Promise.all([
                 props.sp.web.lists.getByTitle('Design_WP').items.select('Title, Id').top(SIZE)(),
                 props.sp.web.lists.getByTitle('Design_DesignStage').items.select('Title, Id, WP_Type, Phase').top(SIZE)(),
-                props.sp.web.lists.getByTitle('Elements').items.select('Title, Id, WP, Location, elementCode, elementName, elementType, ElementNameAndCode').top(SIZE)(),
-                props.sp.web.lists.getByTitle('DesignDisciplinesSubDisciplines').items.select('Title, Id, Discipline, DisciplineValue, SubDiscipline').top(SIZE)(),
+                props.sp.web.lists.getByTitle('Elements').items.select('Title, Id, WP, Location, elementCode, elementName, elementType, ElementNameAndCode, designStage').top(SIZE)(),
+                props.sp.web.lists.getByTitle('DesignDisciplinesSubDisciplines').items.select('Title, Id, Discipline, DisciplineValue, SubDiscipline, generalElement').top(SIZE)(),
                 props.sp.web.lists.getByTitle('Design_DocumentStatus').items.select('Title, Id').top(SIZE)(),
                 props.sp.web.lists.getByTitle('Design_TYPE').items.select('Title, Id').top(SIZE)(),
                 props.sp.web.lists.getByTitle('Design_Phase').items.select('Title, Id, WP_Type').top(SIZE)()
@@ -238,13 +239,50 @@ export function Labeling(props: LabelingProps) {
                         Elements: null,
                         "Sub Disciplines": null,
                     };
+                } else if (label === 'Phase' && row.Phase !== newValue) {
+                    return {
+                        ...row,
+                        WP: row.WP,
+                        Phase: newValue,
+                        "Design Stage": null,
+                        Elements: null,
+                        "Sub Disciplines": null,
+                    };
+                } else if (label === 'Design Stage' && row['Design Stage'] !== newValue) {
+                    return {
+                        ...row,
+                        WP: row.WP,
+                        Phase: row.Phase,
+                        "Design Stage": newValue,
+                        Elements: null,
+                        "Sub Disciplines": null,
+                    };
+                } else if (label === 'Elements' && row.Elements !== newValue) {
+                    return {
+                        ...row,
+                        WP: row.WP,
+                        Phase: row.Phase,
+                        "Design Stage": row['Design Stage'],
+                        Elements: newValue,
+                        "Sub Disciplines": null,
+                    };
+                } else if (label === 'Sub Disciplines' && row['Sub Disciplines'] !== newValue) {
+                    return {
+                        ...row,
+                        WP: row.WP,
+                        Phase: row.Phase,
+                        "Design Stage": row['Design Stage'],
+                        Elements: row.Elements,
+                        "Sub Disciplines": newValue
+                    };
+                } else {
+                    // Otherwise, update only the specific field
+                    return {
+                        ...row,
+                        [label]: newValue,
+                    };
                 }
 
-                // Otherwise, update only the specific field
-                return {
-                    ...row,
-                    [label]: newValue,
-                };
             })
         );
     }
@@ -351,8 +389,6 @@ export function Labeling(props: LabelingProps) {
         await addLookupField("OData__designStageId", data["Design Stage"]);
         await addLookupField("OData__DocumentStatusId", data["Document Status"]);
 
-
-
         return jsonToSave;
     }
 
@@ -380,11 +416,11 @@ export function Labeling(props: LabelingProps) {
                 // Build an array of URL path segments.
                 // If row.Phase exists, use its Title; otherwise, it will be filtered out.
                 const pathSegments = [
-                    row.Phase?.Title,                // Phase (if available)
-                    row['Design Stage']?.Title,      // Design Stage
-                    row.Elements?.ElementNameAndCode,// Elements
+                    row.Phase?.Title,                     // Phase (if available)
+                    row['Design Stage']?.Title,           // Design Stage
+                    row.Elements?.ElementNameAndCode,     // Elements
                     row['Sub Disciplines']?.SubDiscipline // Sub Disciplines
-                ].filter(segment => segment && segment.trim() !== '');
+                ].filter(segment => segment && segment.trim() !== '' && segment.trim() !== 'NR');
 
                 // Join the segments with '/'
                 const path = pathSegments.join('/');
@@ -437,6 +473,42 @@ export function Labeling(props: LabelingProps) {
         )
     );
 
+    const filterElements = (row: any): any[] => {
+        if (!row.WP || !row.Phase || !row["Design Stage"]) return [];
+
+        return designData.Elements.filter(element => {
+            if (row.WP.Title === 'General') return element.WP === 'General' && element.designStage?.trim() === row["Design Stage"].Title?.trim();
+
+            return element.WP === row.WP?.Title;
+        });
+    };
+
+    const filterSubDisciplines = (row: any, index: number): any[] => {
+        if (!row.WP || !row.Phase || !row["Design Stage"] || !row.Elements) return [];
+
+        if (row.WP.Title === 'General') {
+            const options = designData.DesignDisciplinesSubDisciplines.filter(d => d.generalElement?.includes(row.Elements.ElementNameAndCode));
+
+            if (!options.length) {
+                setNRSubDiscipline(row, index);
+                return designData.DesignDisciplinesSubDisciplines.filter(d => d.Discipline === 'NR');
+            }
+
+            return options;
+        }
+
+        return designData.DesignDisciplinesSubDisciplines;
+    };
+
+    const setNRSubDiscipline = (row: any, index: number) => {
+        if (row['Sub Disciplines']?.Discipline === 'NR') return;
+
+        const nextData = [...labelingArr];
+        const updatedRow = { ...row, "Sub Disciplines": designData.DesignDisciplinesSubDisciplines.find(d => d.Discipline === 'NR') };
+        nextData[index] = updatedRow;
+        setLabelingArr(nextData);
+    };
+
     return (
         <>
             {/* Repeating labeling rows */}
@@ -470,16 +542,14 @@ export function Labeling(props: LabelingProps) {
                             {!HAS_NO_ELEMETNS.includes(row.WP?.Title) &&
                                 AutoCompleteLabeling(
                                     index,
-                                    row.WP && row.Phase && row["Design Stage"]
-                                        ? designData.Elements.filter((element) => element.WP === row.WP?.Title)
-                                        : [],
+                                    filterElements(row),
                                     'Elements',
                                     'ElementNameAndCode',
                                     true,
                                     false
                                 )}
                             {/* Sub Disciplines */}
-                            {!HAS_NO_SUB_DICIPLINES.includes(row.WP?.Title) && AutoCompleteLabeling(index, designData.DesignDisciplinesSubDisciplines, 'Sub Disciplines', 'SubDiscipline', true, false)}
+                            {!HAS_NO_SUB_DICIPLINES.includes(row.WP?.Title) && AutoCompleteLabeling(index, filterSubDisciplines(row, index), 'Sub Disciplines', 'SubDiscipline', true, false)}
                         </div>
                         <IconButton disabled={labelingArr.length === 1} size="small" sx={{ display: "flex", justifyContent: "center", width: '5%' }} onClick={() => deleteRow(index + 1)}>
                             <DeleteIcon />

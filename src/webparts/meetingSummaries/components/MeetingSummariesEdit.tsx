@@ -1016,12 +1016,12 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
 
                                     {LoadingForm === 'Saving' ? <LinearProgress /> : null}
 
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: '2em', gap: '20px' }}>
-                                        <Button disabled={this.state.submit === 'send'} variant="contained" color='success' sx={{ backgroundColor: '#8AC693', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('send')}>{t.SaveAndSend}</Button>
-                                        <Button disabled={this.state.submit === 'send'} variant="contained" color='primary' sx={{ minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('save')}>{t.Save}</Button>
-                                        <Button disabled={this.state.submit === 'send'} variant="contained" color='info' sx={{ minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('SendToMeAsEmail')}>{t.SendToMeAsEmail}</Button>
-                                        <Button disabled={this.state.submit === 'send'} variant="contained" color='warning' sx={{ backgroundColor: '#EBAD67', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('DownloadAsDraft')}>{t.DownloadAsDraft}</Button>
-                                        <Button variant="contained" color='error' sx={{ backgroundColor: '#CA3935', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => sweetAlertMsgHandler('Cancel', currDir)}>{t.Cancel}</Button>
+                                    <div className={styles.btnDiv}>
+                                        <Button disabled={this.state.submit === 'send'} variant="contained" color='success' sx={{ whiteSpace: 'nowrap', backgroundColor: '#8AC693', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('send')}>{t.SaveAndSend}</Button>
+                                        <Button disabled={this.state.submit === 'send'} variant="contained" color='primary' sx={{ whiteSpace: 'nowrap', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('save')}>{t.Save}</Button>
+                                        <Button disabled={this.state.submit === 'send'} variant="contained" color='info' sx={{ whiteSpace: 'nowrap', minWidth: '15em', textTransform: 'capitalize' }} onClick={() => this.submitForm('SendToMeAsEmail')}>{t.SendToMeAsEmail}</Button>
+                                        <Button disabled={this.state.submit === 'send'} variant="contained" color='warning' sx={{ whiteSpace: 'nowrap', backgroundColor: '#EBAD67', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('DownloadAsDraft')}>{t.DownloadAsDraft}</Button>
+                                        <Button variant="contained" color='error' sx={{ whiteSpace: 'nowrap', backgroundColor: '#CA3935', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => sweetAlertMsgHandler('Cancel', currDir)}>{t.Cancel}</Button>
                                     </div>
                                 </section>}
                             </div>

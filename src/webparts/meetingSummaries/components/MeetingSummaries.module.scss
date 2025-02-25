@@ -150,6 +150,14 @@
   cursor: pointer;
 }
 
+.btnDiv {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 2em;
+  gap: 20px;
+}
+
 @media only screen and (max-width: 1440px) {
   .paperContainer {
     max-width: 1000px;
@@ -159,6 +167,11 @@
 @media only screen and (max-width: 1024px) {
   .paperContainer {
     max-width: 800px;
+  }
+
+  .btnDiv {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
   }
 }
 
