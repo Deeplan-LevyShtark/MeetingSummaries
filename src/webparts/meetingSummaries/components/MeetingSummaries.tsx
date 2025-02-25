@@ -475,6 +475,24 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
         jsonPayload: updatedPayload
       };
 
+      {/* SendToMeAsEmail */ }
+      if (submitType === 'SendToMeAsEmail') {
+        const confirmed = await sweetAlertMsgHandler('SendToMeAsEmail', currDir)
+        if (!confirmed) {
+          this.setState({ LoadingForm: 'ok' })
+          return
+        }
+      }
+
+      {/* DownloadAsDraft */ }
+      if (submitType === 'DownloadAsDraft') {
+        const confirmed = await sweetAlertMsgHandler('DownloadAsDraft', currDir)
+        if (!confirmed) {
+          this.setState({ LoadingForm: 'ok' })
+          return
+        }
+      }
+
       try {
         await this.props.sp.web.lists.getById(this.props.MeetingSummariesListId).items.add({
           DateOfMeeting: moment(DateOfMeeting),
@@ -510,12 +528,6 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
       }
 
       console.log(submitType);
-
-      {/* SendToMeAsEmail */ }
-      if (submitType === 'SendToMeAsEmail') { sweetAlertMsgHandler('SendToMeAsEmail', currDir) }
-
-      {/* DownloadAsDraft */ }
-      if (submitType === 'DownloadAsDraft') { sweetAlertMsgHandler('DownloadAsDraft', currDir) }
 
       {/* Send */ }
       if (submitType === 'send') {

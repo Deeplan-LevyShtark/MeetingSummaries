@@ -498,6 +498,25 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                 } catch (err) {
                     console.error("Error saving entites Users or Companies", err)
                 }
+
+                {/* SendToMeAsEmail */ }
+                if (submitType === 'SendToMeAsEmail') {
+                    const confirmed = await sweetAlertMsgHandler('SendToMeAsEmail', currDir)
+                    if (!confirmed) {
+                        this.setState({ LoadingForm: 'ok' })
+                        return
+                    }
+                }
+
+                {/* DownloadAsDraft */ }
+                if (submitType === 'DownloadAsDraft') {
+                    const confirmed = await sweetAlertMsgHandler('DownloadAsDraft', currDir)
+                    if (!confirmed) {
+                        this.setState({ LoadingForm: 'ok' })
+                        return
+                    }
+                }
+
                 try {
                     await this.props.sp.web.lists.getById(this.props.MeetingSummariesListId).items.getById(Number(this.props.FormID)).update({
                         DateOfMeeting: moment(DateOfMeeting),
@@ -529,11 +548,11 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                 {/* Submit */ }
                 if (submitType === 'save') { sweetAlertMsgHandler('Submit', currDir) }
 
-                {/* SendToMeAsEmail */ }
-                if (submitType === 'SendToMeAsEmail') { sweetAlertMsgHandler('SendToMeAsEmail', currDir) }
+                // {/* SendToMeAsEmail */ }
+                // if (submitType === 'SendToMeAsEmail') { sweetAlertMsgHandler('SendToMeAsEmail', currDir) }
 
-                {/* DownloadAsDraft */ }
-                if (submitType === 'DownloadAsDraft') { sweetAlertMsgHandler('DownloadAsDraft', currDir) }
+                // {/* DownloadAsDraft */ }
+                // if (submitType === 'DownloadAsDraft') { sweetAlertMsgHandler('DownloadAsDraft', currDir) }
 
             }
 

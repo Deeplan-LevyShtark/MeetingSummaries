@@ -267,10 +267,13 @@ export const confirmSaveAndSend = async (options: any) => {
     });
 };
 
+export const sweetAlertMsgHandler = async (status: string, currDir: boolean): Promise<boolean> => {
+    const t = currDir
+        ? require('../../../locales/he/common.json')
+        : require('../../../locales/en/common.json');
 
-export const sweetAlertMsgHandler = (status: string, currDir: boolean): void => {
-
-    const t = currDir ? require('../../../locales/he/common.json') : require('../../../locales/en/common.json') // Translator between en/he
+    let result;
+    let timer = 1000
 
     if (status === "Submit") {
         Swal.fire({
@@ -290,9 +293,9 @@ export const sweetAlertMsgHandler = (status: string, currDir: boolean): void => 
 
     if (status === 'send') {
         Swal.fire({
-            title: "Save & Send - Are You Sure?",
+            title: t.titleSaveAndSend,
             icon: "warning",
-            text: "This action is irreversible. Once saved and sent, you cannot undo the changes.",
+            text: t.textSaveAndSend,
             confirmButtonText: t.Yes,
             confirmButtonColor: blue.A400,
             cancelButtonText: t.No,
@@ -310,7 +313,6 @@ export const sweetAlertMsgHandler = (status: string, currDir: boolean): void => 
             }
         });
     }
-
 
     if (status === 'Cancel') {
         Swal.fire({
@@ -331,36 +333,47 @@ export const sweetAlertMsgHandler = (status: string, currDir: boolean): void => 
             }
         });
     }
-    if (status === 'SendToMeAsEmail') {
-        Swal.fire({
+
+    if (status === "SendToMeAsEmail") {
+        result = await Swal.fire({
             title: t.swalTitleSendToMeAsEmail,
             icon: "success",
             confirmButtonColor: blue.A400,
             showCancelButton: true,
             confirmButtonText: t.Yes,
             cancelButtonText: t.No,
-            customClass: customClass
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = meetingRoomsListUrl;
-            }
+            customClass: customClass,
         });
+        if (result.isConfirmed) {
+            setTimeout(() => {
+                window.location.href = meetingRoomsListUrl;
+            }, timer);
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    if (status === 'DownloadAsDraft') {
-        Swal.fire({
+    if (status === "DownloadAsDraft") {
+        result = await Swal.fire({
             title: t.swalTitleDownloadAsDraft,
             icon: "success",
             confirmButtonColor: blue.A400,
             showCancelButton: true,
             confirmButtonText: t.Yes,
             cancelButtonText: t.No,
-            customClass: customClass
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = meetingRoomsListUrl;
-            }
+            customClass: customClass,
         });
+        if (result.isConfirmed) {
+            setTimeout(() => {
+                window.location.href = meetingRoomsListUrl;
+            }, timer);
+            return true;
+        } else {
+            return false;
+        }
     }
 
-}
+    // If no matching status is found, do nothing and return false.
+    return false;
+};
