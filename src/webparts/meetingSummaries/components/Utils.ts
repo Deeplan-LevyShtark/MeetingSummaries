@@ -237,7 +237,7 @@ export const confirmSaveAndSend = async (options: any) => {
         onCancel,
         currDir
     } = options;
-    
+
     const t = currDir ? require('../../../locales/he/common.json') : require('../../../locales/en/common.json') // Translator between en/he
 
     return Swal.fire({
@@ -331,4 +331,36 @@ export const sweetAlertMsgHandler = (status: string, currDir: boolean): void => 
             }
         });
     }
+    if (status === 'SendToMeAsEmail') {
+        Swal.fire({
+            title: t.swalTitleSendToMeAsEmail,
+            icon: "success",
+            confirmButtonColor: blue.A400,
+            showCancelButton: true,
+            confirmButtonText: t.Yes,
+            cancelButtonText: t.No,
+            customClass: customClass
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = meetingRoomsListUrl;
+            }
+        });
+    }
+
+    if (status === 'DownloadAsDraft') {
+        Swal.fire({
+            title: t.swalTitleDownloadAsDraft,
+            icon: "success",
+            confirmButtonColor: blue.A400,
+            showCancelButton: true,
+            confirmButtonText: t.Yes,
+            cancelButtonText: t.No,
+            customClass: customClass
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = meetingRoomsListUrl;
+            }
+        });
+    }
+
 }

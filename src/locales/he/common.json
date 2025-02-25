@@ -42,5 +42,9 @@
     "textSaveAndSend": ".פעולה זו אינה ניתנת לביטול. ברגע שתשמור ותשלח, לא תוכל לבטל את השינויים",
     "confirmButtonTextSaveAndSend": "כן, שמור ושלח",
     "required": "שדה חובה",
-    "forInfo": "לידיעה"
+    "forInfo": "לידיעה",
+    "SendToMeAsEmail": "שלח אלי כדוא''ל",
+    "DownloadAsDraft": "הורד כטיוטה",
+    "swalTitleSendToMeAsEmail": "?שלח אלי כדוא''ל - האם אתה בטוח",
+    "swalTitleDownloadAsDraft": "?הורד כטיוטה - האם אתה בטוח"
 }

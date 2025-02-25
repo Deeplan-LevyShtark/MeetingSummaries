@@ -511,6 +511,13 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
 
       console.log(submitType);
 
+      {/* SendToMeAsEmail */ }
+      if (submitType === 'SendToMeAsEmail') { sweetAlertMsgHandler('SendToMeAsEmail', currDir) }
+
+      {/* DownloadAsDraft */ }
+      if (submitType === 'DownloadAsDraft') { sweetAlertMsgHandler('DownloadAsDraft', currDir) }
+
+      {/* Send */ }
       if (submitType === 'send') {
         // Show confirmation dialog
         await confirmSaveAndSend({
@@ -973,6 +980,8 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: '2em', gap: '20px' }}>
                     <Button variant="contained" color='success' sx={{ backgroundColor: '#8AC693', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('send')}>{t.SaveAndSend}</Button>
                     <Button variant="contained" color='primary' sx={{ minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('save')}>{t.Save}</Button>
+                    <Button variant="contained" color='info' sx={{ minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('SendToMeAsEmail')}>{t.SendToMeAsEmail}</Button>
+                    <Button variant="contained" color='warning' sx={{ backgroundColor: '#EBAD67', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('DownloadAsDraft')}>{t.DownloadAsDraft}</Button>
                     <Button variant="contained" color='error' sx={{ backgroundColor: '#CA3935', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => sweetAlertMsgHandler('Cancel', currDir)}>{t.Cancel}</Button>
                   </div>
                 </section>}

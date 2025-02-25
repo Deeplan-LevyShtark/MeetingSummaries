@@ -42,5 +42,9 @@
     "textSaveAndSend": "This action is irreversible. Once saved and sent, you cannot undo the changes.",
     "confirmButtonTextSaveAndSend": "Yes, Save & Send",
     "required": "Required field",
-    "forInfo": "For Info"
+    "forInfo": "For Info",
+    "SendToMeAsEmail": "Send to me as email",
+    "DownloadAsDraft": "Download as draft",
+    "swalTitleSendToMeAsEmail": "Send to me as email - Are You Sure?",
+    "swalTitleDownloadAsDraft": "Download as draft - Are You Sure?"
 }
