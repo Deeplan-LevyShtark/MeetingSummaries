@@ -132,7 +132,7 @@ export function Labeling(props: LabelingProps) {
                 props.sp.web.lists.getByTitle('Design_WP').items.select('Title, Id').top(SIZE)(),
                 props.sp.web.lists.getByTitle('Design_DesignStage').items.select('Title, Id, WP_Type, Phase').top(SIZE)(),
                 props.sp.web.lists.getByTitle('Elements').items.select('Title, Id, WP, Location, elementCode, elementName, elementType, ElementNameAndCode, designStage').top(SIZE)(),
-                props.sp.web.lists.getByTitle('DesignDisciplinesSubDisciplines').items.select('Title, Id, Discipline, DisciplineValue, SubDiscipline, generalElement').top(SIZE)(),
+                props.sp.web.lists.getByTitle('DesignDisciplinesSubDisciplines').items.select('Title, Id, Discipline, DisciplineValue, SubDiscipline, generalElement, Hide').top(SIZE)(),
                 props.sp.web.lists.getByTitle('Design_DocumentStatus').items.select('Title, Id').top(SIZE)(),
                 props.sp.web.lists.getByTitle('Design_TYPE').items.select('Title, Id').top(SIZE)(),
                 props.sp.web.lists.getByTitle('Design_Phase').items.select('Title, Id, WP_Type').top(SIZE)()
@@ -144,7 +144,7 @@ export function Labeling(props: LabelingProps) {
                 Design_WP: filterDuplicats(wp).filter(wp => !['(3rd Party)', 'cordination (danon)'].includes(wp.Title)),
                 Design_DesignStage: filterDuplicats(designStage),
                 Elements: filterDuplicats(elements, 'ElementNameAndCode'),
-                DesignDisciplinesSubDisciplines: filterDuplicats(disciplines, 'SubDiscipline'),
+                DesignDisciplinesSubDisciplines: filterDuplicats(disciplines, 'SubDiscipline').filter(item => item?.Hide !== true),
                 Design_DocumentStatus: filterDuplicats(designDocumentStatus),
                 Design_Type: filterDuplicats(designType),
                 Phase: filterDuplicats(designPhase),
