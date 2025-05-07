@@ -65,6 +65,7 @@ export interface IMeetingSummariesEditStates {
     submit: string;
     selectedLabeling: any;
     addNewContactPopUp: boolean;
+    isSaveAndSend: string;
 }
 
 export const createDirTheme = (isRtl: boolean) =>
@@ -118,7 +119,8 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
             freeSoloUser: '',
             submit: '',
             selectedLabeling: {},
-            addNewContactPopUp: false
+            addNewContactPopUp: false,
+            isSaveAndSend: ''
         }
 
         this.onChangeGeneric = this.onChangeGeneric.bind(this);
@@ -172,7 +174,8 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                 selectedUsers: JSON.parse(item.selectedUsers),
                 selectedUsersFreeSolo: JSON.parse(item.selectedUsersFreeSolo),
                 submit: item.submit,
-                selectedLabeling: JSON.parse(item.selectedLabelingAll)
+                selectedLabeling: JSON.parse(item.selectedLabelingAll),
+                isSaveAndSend: item.isSaveAndSend,
             });
         } catch (error) {
             console.error("Error initializing data:", error);
@@ -538,7 +541,7 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                         FormLink: {
                             Description: MeetingSummary,
                             Url: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/MeetingSummaries.aspx?FormID=${this.props.FormID}`
-                        }
+                        },
                     })
 
                 } catch (error) {
@@ -547,13 +550,6 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
 
                 {/* Submit */ }
                 if (submitType === 'save') { sweetAlertMsgHandler('Submit', currDir) }
-
-                // {/* SendToMeAsEmail */ }
-                // if (submitType === 'SendToMeAsEmail') { sweetAlertMsgHandler('SendToMeAsEmail', currDir) }
-
-                // {/* DownloadAsDraft */ }
-                // if (submitType === 'DownloadAsDraft') { sweetAlertMsgHandler('DownloadAsDraft', currDir) }
-
             }
 
             {/* Send */ }
@@ -583,11 +579,13 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                                 FormLink: {
                                     Description: MeetingSummary,
                                     Url: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/MeetingSummaries.aspx?FormID=${this.props.FormID}`
-                                }
+                                },
+                                isSaveAndSend: "true",
                             })
 
                         } catch (error) {
                             console.error(error);
+                            return;
                         }
 
                         for (const task of reformattedTasks) {
@@ -627,9 +625,6 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                                 const filteredAssignToExternal = users.filter(user =>
                                     task.name.split(', ').includes(user.Title)
                                 );
-                                // const filterAssignToInternal = task.name
-                                //     .split(', ')
-                                //     .filter(name => filteredAssignToExternal.every(user => user.Title !== name));
 
                                 await this.props.sp.web.lists.getById(this.props.TasksListId).items.add({
                                     Title: task.subject,
@@ -1017,10 +1012,10 @@ export default class MeetingSummariesEdit extends React.Component<IMeetingSummar
                                     {LoadingForm === 'Saving' ? <LinearProgress /> : null}
 
                                     <div className={styles.btnDiv}>
-                                        <Button disabled={this.state.submit === 'send'} variant="contained" color='success' sx={{ whiteSpace: 'nowrap', backgroundColor: '#8AC693', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('send')}>{t.SaveAndSend}</Button>
-                                        <Button disabled={this.state.submit === 'send'} variant="contained" color='primary' sx={{ whiteSpace: 'nowrap', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('save')}>{t.Save}</Button>
-                                        <Button disabled={this.state.submit === 'send'} variant="contained" color='info' sx={{ whiteSpace: 'nowrap', minWidth: '15em', textTransform: 'capitalize' }} onClick={() => this.submitForm('SendToMeAsEmail')}>{t.SendToMeAsEmail}</Button>
-                                        <Button disabled={this.state.submit === 'send'} variant="contained" color='warning' sx={{ whiteSpace: 'nowrap', backgroundColor: '#EBAD67', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('DownloadAsDraft')}>{t.DownloadAsDraft}</Button>
+                                        <Button disabled={this.state.isSaveAndSend === 'true'} variant="contained" color='success' sx={{ whiteSpace: 'nowrap', backgroundColor: '#8AC693', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('send')}>{t.SaveAndSend}</Button>
+                                        <Button disabled={this.state.isSaveAndSend === 'true'} variant="contained" color='primary' sx={{ whiteSpace: 'nowrap', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('save')}>{t.Save}</Button>
+                                        <Button variant="contained" color='info' sx={{ whiteSpace: 'nowrap', minWidth: '15em', textTransform: 'capitalize' }} onClick={() => this.submitForm('SendToMeAsEmail')}>{t.SendToMeAsEmail}</Button>
+                                        <Button variant="contained" color='warning' sx={{ whiteSpace: 'nowrap', backgroundColor: '#EBAD67', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => this.submitForm('DownloadAsDraft')}>{t.DownloadAsDraft}</Button>
                                         <Button variant="contained" color='error' sx={{ whiteSpace: 'nowrap', backgroundColor: '#CA3935', minWidth: '10em', textTransform: 'capitalize' }} onClick={() => sweetAlertMsgHandler('Cancel', currDir)}>{t.Cancel}</Button>
                                     </div>
                                 </section>}

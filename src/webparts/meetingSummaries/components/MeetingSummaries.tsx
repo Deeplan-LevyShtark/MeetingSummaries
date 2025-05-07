@@ -493,38 +493,41 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
         }
       }
 
-      try {
-        await this.props.sp.web.lists.getById(this.props.MeetingSummariesListId).items.add({
-          DateOfMeeting: moment(DateOfMeeting),
-          MeetingSummary: MeetingSummary,
-          attendees: JSON.stringify(reformattedAttendees),
-          absents: JSON.stringify(reformattedAbsents),
-          meetingContent: JSON.stringify(reformattedMeetingContent),
-          tasks: JSON.stringify(reformattedTasks),
-          libraryPath: libraryPath,
-          libraryName: libraryName,
-          language: this.state.currDir ? 'he' : 'en',
-          dir: this.state.currDir,
-          selectedUsers: JSON.stringify(selectedUsers),
-          selectedUsersFreeSolo: JSON.stringify(selectedUsersFreeSolo),
-          submit: submitType,
-          Summarizing: currUser?.Title,
-          Copy: [...this.state.selectedUsers, ...this.state.selectedUsersFreeSolo].flat().join(', '),
-          selectedLabeling: JSON.stringify(finalLabeling),
-          selectedLabelingAll: JSON.stringify(this.state.selectedLabeling),
-          sendMailToAll: uniqueEmails
-        }).then(async (item) => {
-          itemId = item.Id
-          await this.props.sp.web.lists.getById(this.props.MeetingSummariesListId).items.getById(item.Id).update({
-            FormLink: {
-              Description: MeetingSummary,
-              Url: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/MeetingSummaries.aspx?FormID=${item.Id}`
-            }
-          }).catch((err) => { console.error("Error updating FormLink:", err) });
-        })
-        if (submitType === 'save') { sweetAlertMsgHandler('Submit', currDir) }
-      } catch (err) {
-        console.error("Error saving Meeting Summary:", err);
+      {/* Save */ }
+      if (submitType === 'save') {
+        try {
+          await this.props.sp.web.lists.getById(this.props.MeetingSummariesListId).items.add({
+            DateOfMeeting: moment(DateOfMeeting),
+            MeetingSummary: MeetingSummary,
+            attendees: JSON.stringify(reformattedAttendees),
+            absents: JSON.stringify(reformattedAbsents),
+            meetingContent: JSON.stringify(reformattedMeetingContent),
+            tasks: JSON.stringify(reformattedTasks),
+            libraryPath: libraryPath,
+            libraryName: libraryName,
+            language: this.state.currDir ? 'he' : 'en',
+            dir: this.state.currDir,
+            selectedUsers: JSON.stringify(selectedUsers),
+            selectedUsersFreeSolo: JSON.stringify(selectedUsersFreeSolo),
+            submit: submitType,
+            Summarizing: currUser?.Title,
+            Copy: [...this.state.selectedUsers, ...this.state.selectedUsersFreeSolo].flat().join(', '),
+            selectedLabeling: JSON.stringify(finalLabeling),
+            selectedLabelingAll: JSON.stringify(this.state.selectedLabeling),
+            sendMailToAll: uniqueEmails,
+          }).then(async (item) => {
+            itemId = item.Id
+            await this.props.sp.web.lists.getById(this.props.MeetingSummariesListId).items.getById(item.Id).update({
+              FormLink: {
+                Description: MeetingSummary,
+                Url: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/MeetingSummaries.aspx?FormID=${item.Id}`
+              }
+            }).catch((err) => { console.error("Error updating FormLink:", err) });
+          })
+          if (submitType === 'save') { sweetAlertMsgHandler('Submit', currDir) }
+        } catch (err) {
+          console.error("Error saving Meeting Summary:", err);
+        }
       }
 
       console.log(submitType);
@@ -535,6 +538,42 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
         await confirmSaveAndSend({
           currDir,
           onConfirm: async () => {
+
+            try {
+              await this.props.sp.web.lists.getById(this.props.MeetingSummariesListId).items.add({
+                DateOfMeeting: moment(DateOfMeeting),
+                MeetingSummary: MeetingSummary,
+                attendees: JSON.stringify(reformattedAttendees),
+                absents: JSON.stringify(reformattedAbsents),
+                meetingContent: JSON.stringify(reformattedMeetingContent),
+                tasks: JSON.stringify(reformattedTasks),
+                libraryPath: libraryPath,
+                libraryName: libraryName,
+                language: this.state.currDir ? 'he' : 'en',
+                dir: this.state.currDir,
+                selectedUsers: JSON.stringify(selectedUsers),
+                selectedUsersFreeSolo: JSON.stringify(selectedUsersFreeSolo),
+                submit: submitType,
+                Summarizing: currUser?.Title,
+                Copy: [...this.state.selectedUsers, ...this.state.selectedUsersFreeSolo].flat().join(', '),
+                selectedLabeling: JSON.stringify(finalLabeling),
+                selectedLabelingAll: JSON.stringify(this.state.selectedLabeling),
+                sendMailToAll: uniqueEmails,
+                isSaveAndSend: submitType === "send" ? "true" : "",
+              }).then(async (item) => {
+                itemId = item.Id
+                await this.props.sp.web.lists.getById(this.props.MeetingSummariesListId).items.getById(item.Id).update({
+                  FormLink: {
+                    Description: MeetingSummary,
+                    Url: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/MeetingSummaries.aspx?FormID=${item.Id}`
+                  }
+                }).catch((err) => { console.error("Error updating FormLink:", err) });
+              })
+            } catch (err) {
+              console.error("Error saving Meeting Summary:", err);
+              return;
+            }
+
             for (const task of reformattedTasks) {
               const AssignedToExternal: string[] = [];
               const RemovedIds: number[] = [];
@@ -571,9 +610,6 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
                 const filteredAssignToExternal = users.filter(user =>
                   task.name.split(', ').includes(user.Title)
                 );
-                // const filterAssignToInternal = task.name
-                // .split(', ')
-                // .filter(name => filteredAssignToExternal.every(user => user.Title !== name));
 
                 await this.props.sp.web.lists.getById(this.props.TasksListId).items.add({
                   Title: task.subject,
@@ -746,7 +782,6 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
     });
   };
 
-
   public render(): React.ReactElement<IMeetingSummariesProps> {
 
     const { currUser, currDir, LoadingForm, DateOfMeeting, users, libraryName, errors, attendees, absents, tasks, meetingContent } = this.state
@@ -789,7 +824,6 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
         { name: 'action', label: t.Delete, type: 'action', width: 50, editable: true },
       ]
     }
-
 
     return (
       <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={currDir ? 'he' : 'en-gb'}>
