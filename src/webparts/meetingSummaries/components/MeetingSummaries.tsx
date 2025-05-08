@@ -475,26 +475,7 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
         jsonPayload: updatedPayload
       };
 
-      {/* SendToMeAsEmail */ }
-      if (submitType === 'SendToMeAsEmail') {
-        const confirmed = await sweetAlertMsgHandler('SendToMeAsEmail', currDir)
-        if (!confirmed) {
-          this.setState({ LoadingForm: 'ok' })
-          return
-        }
-      }
-
-      {/* DownloadAsDraft */ }
-      if (submitType === 'DownloadAsDraft') {
-        const confirmed = await sweetAlertMsgHandler('DownloadAsDraft', currDir)
-        if (!confirmed) {
-          this.setState({ LoadingForm: 'ok' })
-          return
-        }
-      }
-
-      {/* Save */ }
-      if (submitType === 'save') {
+      const save = async () => {
         try {
           await this.props.sp.web.lists.getById(this.props.MeetingSummariesListId).items.add({
             DateOfMeeting: moment(DateOfMeeting),
@@ -515,22 +496,47 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
             selectedLabeling: JSON.stringify(finalLabeling),
             selectedLabelingAll: JSON.stringify(this.state.selectedLabeling),
             sendMailToAll: uniqueEmails,
-          }).then(async (item) => {
+          }).then(async (item: any) => {
             itemId = item.Id
             await this.props.sp.web.lists.getById(this.props.MeetingSummariesListId).items.getById(item.Id).update({
               FormLink: {
                 Description: MeetingSummary,
                 Url: `${this.props.context.pageContext.web.absoluteUrl}/SitePages/MeetingSummaries.aspx?FormID=${item.Id}`
               }
-            }).catch((err) => { console.error("Error updating FormLink:", err) });
+            }).catch((err: Error) => { console.error("Error updating FormLink:", err) });
           })
-          if (submitType === 'save') { sweetAlertMsgHandler('Submit', currDir) }
         } catch (err) {
           console.error("Error saving Meeting Summary:", err);
         }
       }
 
-      console.log(submitType);
+      {/* SendToMeAsEmail */ }
+      if (submitType === 'SendToMeAsEmail') {
+        const confirmed = await sweetAlertMsgHandler('SendToMeAsEmail', currDir)
+        if (!confirmed) {
+          this.setState({ LoadingForm: 'ok' })
+          return
+        } else {
+          await save()
+        }
+      }
+
+      {/* DownloadAsDraft */ }
+      if (submitType === 'DownloadAsDraft') {
+        const confirmed = await sweetAlertMsgHandler('DownloadAsDraft', currDir)
+        if (!confirmed) {
+          this.setState({ LoadingForm: 'ok' })
+          return
+        } else {
+          await save()
+        }
+      }
+
+      {/* Save */ }
+      if (submitType === 'save') {
+        await save()
+        sweetAlertMsgHandler('Submit', currDir)
+      }
 
       {/* Send */ }
       if (submitType === 'send') {
@@ -640,6 +646,9 @@ export default class MeetingSummaries extends React.Component<IMeetingSummariesP
           }
         })
       }
+
+      console.log(submitType);
+
     }
 
     this.setState({ LoadingForm: 'ok' })
